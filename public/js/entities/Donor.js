@@ -307,7 +307,7 @@ function createDonorDrawFunction(style) {
 
 
 function drawSpeechBubble(context, text, state) {
-    const bubbleX = -2;
+    const bubbleX = 12;
     const bubbleY = -16;
     const padding = 2;
 
@@ -396,8 +396,15 @@ function drawAskIndicator(context, remainingAsks) {
     // Position centered above the donor's head (in DRAW_OFFSET translated space)
     const indicatorY = -8;
     const startX = 1;
+    const text = 'x' + remainingAsks;
+    const textWidth = text.length * 4;
+    const totalWidth = 7 + 1 + textWidth; // envelope + gap + text
 
     context.save();
+
+    // Dark background pill for visibility against any background
+    context.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    context.fillRect(startX - 1, indicatorY - 2, totalWidth + 2, 8);
 
     // Draw mini envelope icon (7x5)
     context.fillStyle = '#fff';
@@ -414,7 +421,7 @@ function drawAskIndicator(context, remainingAsks) {
 
     // Draw "xN" text next to envelope
     context.fillStyle = '#fff';
-    drawPixelText(context, 'x' + remainingAsks, startX + 8, indicatorY - 1);
+    drawPixelText(context, text, startX + 8, indicatorY - 1);
 
     context.restore();
 }
