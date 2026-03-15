@@ -56,7 +56,7 @@ class Behavior extends Trait {
 
         this.remainingAsks--;
 
-        if (this.remainingAsks <= 0) {
+        if (this.remainingAsks < 0) {
             this.startFleeing(us, them);
             return;
         }
@@ -297,7 +297,7 @@ function createDonorDrawFunction(style) {
         }
 
         // Ask limit indicator (only visible after Dataro power-up)
-        if (isDataroRevealed() && state !== STATE_FLEEING && !this.traits.get(Killable).dead && behavior.remainingAsks > 0) {
+        if (isDataroRevealed() && state !== STATE_FLEEING && !this.traits.get(Killable).dead && behavior.remainingAsks >= 0) {
             drawAskIndicator(context, behavior.remainingAsks);
         }
 
