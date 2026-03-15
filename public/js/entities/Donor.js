@@ -36,6 +36,7 @@ class Behavior extends Trait {
         this.fireTimer = 0;
         this.burstCount = 0;
         this.burstTimer = 0;
+        this.staggerTimer = 0;
     }
 
     collides(us, them) {
@@ -75,6 +76,11 @@ class Behavior extends Trait {
             this.appealCount++;
             if (this.appealCount >= DISGRUNTLED_THRESHOLD) {
                 this.startDisgruntled(us);
+            } else {
+                // Stagger: briefly stop so player can land more hits
+                us.vel.x = 0;
+                us.traits.get(PendulumMove).speed = 0;
+                this.staggerTimer = 0.6;
             }
             return;
         }
@@ -193,6 +199,13 @@ class Behavior extends Trait {
             }
             if (this.respondTimer > 6) {
                 us.traits.get(Killable).kill();
+            }
+            // Recover from stagger
+            if (this.staggerTimer > 0) {
+                this.staggerTimer -= deltaTime;
+                if (this.staggerTimer <= 0) {
+                    us.traits.get(PendulumMove).speed = FLEE_SPEED * this.fleeDirection;
+                }
             }
         }
 
@@ -425,8 +438,7 @@ function createDonorDrawFunction(style) {
 
         // Speech bubble (drawn at normal scale, above the character)
         if (behavior.speechBubbleText) {
-            const bubbleYOffset = isDisgruntled ? -16 : 0;
-            drawSpeechBubble(context, behavior.speechBubbleText, state, bubbleYOffset);
+            drawSpeechBubble(context, behavior.speechBubbleText, state);
         }
 
         context.restore(); // restore DRAW_OFFSET translate
@@ -434,9 +446,9 @@ function createDonorDrawFunction(style) {
 }
 
 
-function drawSpeechBubble(context, text, state, extraYOffset) {
+function drawSpeechBubble(context, text, state) {
     const bubbleX = -2;
-    const bubbleY = -16 + (extraYOffset || 0);
+    const bubbleY = -16;
     const padding = 2;
 
     context.save();
