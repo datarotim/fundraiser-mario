@@ -7,6 +7,7 @@ import PipeTraveller from '../traits/PipeTraveller.js';
 import PoleTraveller from '../traits/PoleTraveller.js';
 import Solid from '../traits/Solid.js';
 import Stomper from '../traits/Stomper.js';
+import Thrower from '../traits/Thrower.js';
 import {loadAudioBoard} from '../loaders/audio.js';
 import {loadSpriteSheet} from '../loaders/sprite.js';
 
@@ -84,6 +85,7 @@ function createMarioFactory(sprite, audio) {
         mario.addTrait(new Jump());
         mario.addTrait(new Killable());
         mario.addTrait(new Stomper());
+        mario.addTrait(new Thrower());
         mario.addTrait(new PipeTraveller());
         mario.addTrait(new PoleTraveller());
 

@@ -158,7 +158,7 @@ export function createLevelLoader(entityFactory) {
             }
 
             const spriteLayer = createSpriteLayer(level.entities);
-            level.comp.layers.splice(level.comp.layers.length - 1, 0, spriteLayer);
+            level.comp.layers.push(spriteLayer);
 
             return level;
         });

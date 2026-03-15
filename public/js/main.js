@@ -1,6 +1,10 @@
 import Level from './Level.js';
 import Timer from './Timer.js';
 import Pipe from './traits/Pipe.js';
+import Killable from './traits/Killable.js';
+import Player from './traits/Player.js';
+import Physics from './traits/Physics.js';
+import Solid from './traits/Solid.js';
 import {createLevelLoader} from './loaders/level.js';
 import {loadFont} from './loaders/font.js';
 import {loadEntities} from './entities.js';
@@ -8,7 +12,6 @@ import {makePlayer, bootstrapPlayer, resetPlayer, findPlayers} from './player.js
 import {setupKeyboard} from './input.js';
 import {createColorLayer} from './layers/color.js';
 import {createTextLayer} from './layers/text.js';
-import {createCollisionLayer} from './layers/collision.js';
 import {createDashboardLayer} from './layers/dashboard.js';
 import { createPlayerProgressLayer } from './layers/player-progress.js';
 import SceneRunner from './SceneRunner.js';
@@ -82,15 +85,62 @@ async function main(canvas) {
             }
         });
 
-        level.comp.layers.push(createCollisionLayer(level));
-
         const dashboardLayer = createDashboardLayer(font, mario);
         level.comp.layers.push(dashboardLayer);
 
         return level;
     }
 
+    let currentWorldName = null;
+    let deathHandled = false;
+
+    function watchForDeath(level) {
+        deathHandled = false;
+
+        const originalUpdate = level.update.bind(level);
+        level.update = function(gameContext) {
+            originalUpdate(gameContext);
+
+            const killable = mario.traits.get(Killable);
+            if (killable.dead && !deathHandled) {
+                deathHandled = true;
+
+                const playerTrait = mario.traits.get(Player);
+                playerTrait.lives -= 1;
+
+                // Death animation: disable tile collisions so Mario falls through
+                const physics = mario.traits.get(Physics);
+                const origPhysicsUpdate = physics.update.bind(physics);
+                physics.update = function(entity, gameContext, level) {
+                    const {deltaTime} = gameContext;
+                    entity.pos.x += entity.vel.x * deltaTime;
+                    entity.pos.y += entity.vel.y * deltaTime;
+                    entity.vel.y += level.gravity * deltaTime;
+                };
+                mario.traits.get(Solid).obstructs = false;
+
+                // Launch upward then fall through floor
+                mario.vel.set(0, -400);
+
+                // After 3 seconds, respawn or let game over show
+                setTimeout(async () => {
+                    // Restore physics
+                    physics.update = origPhysicsUpdate;
+                    mario.traits.get(Solid).obstructs = true;
+
+                    if (playerTrait.lives > 0) {
+                        killable.revive();
+                        mario.vel.set(0, 0);
+                        await startWorld(currentWorldName);
+                    }
+                    // If lives <= 0, game over overlay in dashboard handles it
+                }, 3000);
+            }
+        };
+    }
+
     async function startWorld(name) {
+        currentWorldName = name;
         const level = await setupLevel(name);
         resetPlayer(mario, name);
 
@@ -98,7 +148,7 @@ async function main(canvas) {
         const dashboardLayer = createDashboardLayer(font, mario);
 
         const waitScreen = new TimedScene();
-        waitScreen.countDown = 4;
+        waitScreen.countDown = 2;
         waitScreen.comp.layers.push(createColorLayer('#000'));
         waitScreen.comp.layers.push(dashboardLayer);
         waitScreen.comp.layers.push(playerProgressLayer);
@@ -106,6 +156,8 @@ async function main(canvas) {
         sceneRunner.addScene(waitScreen);
         sceneRunner.addScene(level);
         sceneRunner.runNext();
+
+        watchForDeath(level);
     }
 
     const gameContext = {
@@ -132,6 +184,8 @@ const canvas = document.getElementById('screen');
 
 const start = () => {
     window.removeEventListener('click', start);
+    const overlay = document.getElementById('start-overlay');
+    if (overlay) overlay.remove();
     main(canvas);
 };
 

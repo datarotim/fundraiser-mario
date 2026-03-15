@@ -3,7 +3,7 @@ import LevelTimer from './traits/LevelTimer.js';
 
 export function makePlayer(entity, name) {
     const player = new Player();
-    player.name = "MARIO";
+    player.name = "FUNDRAISER";
     entity.addTrait(player);
 
     const timer = new LevelTimer();

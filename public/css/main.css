@@ -1,6 +1,7 @@
 body {
     background: #000;
     margin: 0;
+    font-family: monospace;
 }
 
 #screen {
@@ -19,4 +20,61 @@ body {
 .aspect-16-9 {
     height: 56.25vw;
     max-width: 177.7vh;
+}
+
+#start-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.92);
+    z-index: 10;
+    cursor: pointer;
+    color: white;
+}
+
+#start-overlay .title {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #6B3FA0;
+    letter-spacing: 4px;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 0 #3a1f5c;
+}
+
+#start-overlay .subtitle {
+    font-size: 1rem;
+    color: #aaa;
+    margin-bottom: 2rem;
+}
+
+#start-overlay .controls {
+    font-size: 0.85rem;
+    color: #888;
+    text-align: center;
+    line-height: 1.8;
+    margin-bottom: 2rem;
+}
+
+#start-overlay .prompt {
+    font-size: 1.1rem;
+    color: #fff;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+#start-overlay .credit {
+    position: absolute;
+    bottom: 2rem;
+    font-size: 0.75rem;
+    color: #6B3FA0;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
 }

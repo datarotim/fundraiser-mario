@@ -3,14 +3,15 @@ import InputRouter from './InputRouter.js';
 import Jump from './traits/Jump.js';
 import PipeTraveller from './traits/PipeTraveller.js';
 import Go from './traits/Go.js';
+import Thrower from './traits/Thrower.js';
 
 const KEYMAP = {
-    UP: 'KeyW',
-    DOWN: 'KeyS',
-    LEFT: 'KeyA',
-    RIGHT: 'KeyD',
-    A: "KeyP",
-    B: "KeyO",
+    UP: 'ArrowUp',
+    DOWN: 'ArrowDown',
+    LEFT: 'ArrowLeft',
+    RIGHT: 'ArrowRight',
+    A: "Space",
+    B: "ShiftLeft",
 };
 
 export function setupKeyboard(window) {
@@ -55,6 +56,16 @@ export function setupKeyboard(window) {
             entity.traits.get(Go).dir += keyState ? -1 : 1;
             entity.traits.get(PipeTraveller).direction.x += keyState ? -1 : 1;
         });
+    });
+
+    input.addMapping('KeyZ', keyState => {
+        if (keyState) {
+            router.route(entity => {
+                if (entity.traits.has(Thrower)) {
+                    entity.traits.get(Thrower).throw();
+                }
+            });
+        }
     });
 
     return router;
