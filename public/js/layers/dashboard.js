@@ -1,16 +1,13 @@
 import Player from "../traits/Player.js";
 import LevelTimer from "../traits/LevelTimer.js";
-import Killable from "../traits/Killable.js";
 import Retention from "../traits/Retention.js";
-import {GAME_OVER_MESSAGES as NARRATIVE_GAME_OVER, pickRandom} from "../narrative.js";
+import {getDataroCollectFlashState} from "../entities/DataroPowerup.js";
+
+const DATARO_FLASH_DURATION_MS = 3000;
 
 export function createDashboardLayer(font, entity) {
     const LINE1 = font.size * 2;
     const LINE2 = font.size * 3;
-
-    let gameOverMessage = null;
-    let gameOverShown = false;
-    let gameOverClickHandler = null;
 
     return function drawDashboard(context) {
         const playerTrait = entity.traits.get(Player);
@@ -60,44 +57,13 @@ export function createDashboardLayer(font, entity) {
             font.print(pctText, context, barX + barW + 4, LINE3 + font.size - 2);
         }
 
-        // Game over message only when all lives are gone
-        const killable = entity.traits.get(Killable);
-        const playerLives = entity.traits.get(Player).lives;
-        if (killable && killable.dead && killable.deadTime > 3 && playerLives <= 0) {
-            if (!gameOverShown) {
-                gameOverShown = true;
-                gameOverMessage = pickRandom(NARRATIVE_GAME_OVER);
-            }
-
-            const w = context.canvas.width;
-            const h = context.canvas.height;
-            context.fillStyle = 'rgba(0, 0, 0, 0.85)';
-            context.fillRect(0, 0, w, h);
-
-            const centerX = (txt) => Math.floor(w / 2) - Math.floor(txt.length * font.size / 2);
-            const midY = Math.floor(h / 2);
-
-            font.print('GAME OVER', context, centerX('GAME OVER'), midY - font.size * 5);
-
-            // Render multiline game over message
-            const msgLines = gameOverMessage.split('\n');
-            const msgStartY = midY - Math.floor(msgLines.length * font.size / 2);
-            for (let i = 0; i < msgLines.length; i++) {
-                font.print(msgLines[i], context, centerX(msgLines[i]), msgStartY + i * font.size * 1.5);
-            }
-
-            const ctaText = 'DATARO.COM';
-            font.print(ctaText, context, centerX(ctaText), midY + font.size * 4);
-
-            const retryText = 'CLICK TO RETRY';
-            font.print(retryText, context, centerX(retryText), midY + font.size * 6);
-
-            if (!gameOverClickHandler) {
-                gameOverClickHandler = () => {
-                    window.location.reload();
-                };
-                window.addEventListener('click', gameOverClickHandler);
-            }
+        // Dataro AI flash when power-up is collected
+        const flash = getDataroCollectFlashState();
+        if (flash.triggered && (performance.now() - flash.start) < DATARO_FLASH_DURATION_MS) {
+            const flashText = 'DATARO AI ACTIVATED';
+            const x = Math.floor(context.canvas.width / 2) - Math.floor(flashText.length * font.size / 2);
+            const y = Math.floor(context.canvas.height / 2) - font.size;
+            font.print(flashText, context, x, y);
         }
     };
 }
