@@ -53,13 +53,52 @@ body {
     margin-bottom: 2rem;
 }
 
+#start-overlay .tagline {
+    font-size: 0.8rem;
+    color: #9B6FD0;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+}
+
 #start-overlay .controls {
     font-size: 0.85rem;
     color: #888;
-    text-align: center;
+    text-align: left;
     line-height: 1.8;
+    margin-bottom: 1.5rem;
+}
+
+#start-overlay .control-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+#start-overlay .key {
+    color: #aaa;
+    min-width: 7rem;
+    text-align: right;
+}
+
+#start-overlay .donor-legend {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.75rem;
+    color: #777;
     margin-bottom: 2rem;
 }
+
+#start-overlay .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
+#start-overlay .dot-teal { background: #2A9D8F; }
+#start-overlay .dot-gold { background: #E9C46A; }
+#start-overlay .dot-crimson { background: #C1272D; }
 
 #start-overlay .prompt {
     font-size: 1.1rem;
@@ -71,7 +110,12 @@ body {
     position: absolute;
     bottom: 2rem;
     font-size: 0.75rem;
+    color: #888;
+}
+
+#start-overlay .dataro-text {
     color: #6B3FA0;
+    font-weight: bold;
 }
 
 @keyframes pulse {

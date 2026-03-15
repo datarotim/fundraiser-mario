@@ -14,10 +14,14 @@ import {createColorLayer} from './layers/color.js';
 import {createTextLayer} from './layers/text.js';
 import {createDashboardLayer} from './layers/dashboard.js';
 import { createPlayerProgressLayer } from './layers/player-progress.js';
+import { createDataroRevealLayer } from './layers/dataro-reveal.js';
 import SceneRunner from './SceneRunner.js';
 import Scene from './Scene.js';
 import TimedScene from './TimedScene.js';
+import NarrativeScene from './NarrativeScene.js';
+import VictoryScene from './VictoryScene.js';
 import { connectEntity } from './traits/Pipe.js';
+import { OPENING_NARRATIVES, pickRandom, pickNextCard } from './narrative.js';
 
 async function main(canvas) {
     const videoContext = canvas.getContext('2d');
@@ -59,7 +63,16 @@ async function main(canvas) {
         level.events.listen(Level.EVENT_TRIGGER, (spec, trigger, touches) => {
             if (spec.type === "goto") {
                 for (const _ of findPlayers(touches)) {
-                    startWorld(spec.name);
+                    // Show victory/stats screen between levels
+                    const playerTrait = mario.traits.get(Player);
+                    const victoryScene = new VictoryScene(font, playerTrait, {
+                        isFinal: false,
+                    });
+                    sceneRunner.addSceneManual(victoryScene);
+                    sceneRunner.runNext();
+                    victoryScene.events.listen(Scene.EVENT_COMPLETE, () => {
+                        startWorld(spec.name);
+                    });
                     return;
                 }
             }
@@ -88,11 +101,16 @@ async function main(canvas) {
         const dashboardLayer = createDashboardLayer(font, mario);
         level.comp.layers.push(dashboardLayer);
 
+        const revealLayer = createDataroRevealLayer(font);
+        level.comp.layers.push(revealLayer);
+
         return level;
     }
 
     let currentWorldName = null;
     let deathHandled = false;
+    let worldsVisited = 0;
+    let isDeathRestart = false;
 
     function watchForDeath(level) {
         deathHandled = false;
@@ -131,6 +149,7 @@ async function main(canvas) {
                     if (playerTrait.lives > 0) {
                         killable.revive();
                         mario.vel.set(0, 0);
+                        isDeathRestart = true;
                         await startWorld(currentWorldName);
                     }
                     // If lives <= 0, game over overlay in dashboard handles it
@@ -141,6 +160,28 @@ async function main(canvas) {
 
     async function startWorld(name) {
         currentWorldName = name;
+        worldsVisited++;
+
+        // Show between-level fundraiser fact card (not on first world, not on death restart)
+        if (worldsVisited > 1 && !isDeathRestart) {
+            const cardText = pickNextCard();
+            const cardLines = cardText.split('\n');
+            const cardScene = new NarrativeScene(font, cardLines, {
+                scrollSpeed: 0,
+                showPrompt: true,
+            });
+            cardScene._skipDelay = 1.5;
+            sceneRunner.addSceneManual(cardScene);
+            sceneRunner.runNext();
+
+            // Wait for card to complete before loading level
+            await new Promise(resolve => {
+                cardScene.events.listen(Scene.EVENT_COMPLETE, resolve);
+            });
+        }
+
+        isDeathRestart = false;
+
         const level = await setupLevel(name);
         resetPlayer(mario, name);
 
@@ -177,7 +218,18 @@ async function main(canvas) {
 
     timer.start();
 
-    startWorld('1-1');
+    // Show opening narrative crawl before first level
+    const openingLines = pickRandom(OPENING_NARRATIVES);
+    const narrativeScene = new NarrativeScene(font, openingLines, {
+        title: 'THE FUNDRAISER',
+        scrollSpeed: 16,
+    });
+    sceneRunner.addSceneManual(narrativeScene);
+    sceneRunner.runNext();
+
+    narrativeScene.events.listen(Scene.EVENT_COMPLETE, () => {
+        startWorld('1-1');
+    });
 }
 
 const canvas = document.getElementById('screen');

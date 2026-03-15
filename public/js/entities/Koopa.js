@@ -5,7 +5,11 @@ import PendulumMove from '../traits/PendulumMove.js';
 import Physics from '../traits/Physics.js';
 import Solid from '../traits/Solid.js';
 import Stomper from '../traits/Stomper.js';
+import Player from '../traits/Player.js';
 import {loadSpriteSheet} from '../loaders/sprite.js';
+import Retention from '../traits/Retention.js';
+import {assignDonorType, drawDonorIndicator} from '../DonorType.js';
+import {isDataroRevealed} from '../entities/DataroPowerup.js';
 
 export function loadKoopaGreen() {
     return loadSpriteSheet('koopa-green')
@@ -52,6 +56,9 @@ class Behavior extends Trait {
     handleNudge(us, them) {
         if (this.state === STATE_WALKING) {
             them.traits.get(Killable).kill();
+            if (them.traits.has(Retention)) {
+                them.traits.get(Retention).hit(5);
+            }
         } else if (this.state === STATE_HIDING) {
             this.panic(us, them);
         } else if (this.state === STATE_PANIC) {
@@ -66,6 +73,10 @@ class Behavior extends Trait {
     handleStomp(us, them) {
         if (this.state === STATE_WALKING) {
             this.hide(us);
+            // Award donor value on first stomp
+            if (them.traits.has(Player) && us.donorType) {
+                them.traits.get(Player).score += us.donorType.value;
+            }
         } else if (this.state === STATE_HIDING) {
             us.traits.get(Killable).kill();
             us.vel.set(100, -200);
@@ -130,12 +141,16 @@ function createKoopaFactory(sprite) {
 
     function drawKoopa(context) {
         sprite.draw(routeAnim(this), context, 0, 0, this.vel.x < 0);
+        if (this.donorType && !this.traits.get(Killable).dead) {
+            drawDonorIndicator(context, this.donorType, 0, 0, 16, isDataroRevealed());
+        }
     }
 
     return function createKoopa() {
         const koopa = new Entity();
         koopa.size.set(16, 16);
         koopa.offset.y = 8;
+        koopa.donorType = assignDonorType();
 
         koopa.addTrait(new Physics());
         koopa.addTrait(new Solid());
