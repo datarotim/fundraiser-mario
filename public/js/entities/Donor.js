@@ -100,6 +100,9 @@ class Behavior extends Trait {
         this.fleeDirection = fleeDir || 1;
         us.traits.get(PendulumMove).enabled = true;
         us.traits.get(PendulumMove).speed = FLEE_SPEED * this.fleeDirection;
+
+        // Disable wall collision so fleeing donors run off-screen
+        us.traits.get(Solid).obstructs = false;
     }
 
     update(us, gameContext) {
@@ -261,12 +264,11 @@ function createDonorDrawFunction(style) {
             context.fillRect(5, 2, 1, 1);
             context.fillRect(9, 2, 1, 1);
         } else if (state === STATE_RESPONDING) {
-            // Happy closed eyes (^_^)
-            context.fillRect(5, 2, 2, 1);
-            context.fillRect(9, 2, 2, 1);
-            context.fillStyle = colors.skinColor;
-            context.fillRect(5, 2, 2, 0.5);
-            context.fillRect(9, 2, 2, 0.5);
+            // Happy closed eyes (^_^) - upward arc
+            context.fillRect(5, 3, 1, 1);
+            context.fillRect(6, 2, 1, 1);
+            context.fillRect(9, 2, 1, 1);
+            context.fillRect(10, 3, 1, 1);
         } else {
             // Normal dot eyes
             context.fillRect(6, 2, 1, 2);
@@ -279,11 +281,10 @@ function createDonorDrawFunction(style) {
             context.fillStyle = '#000';
             context.fillRect(7, 4, 2, 1);
         } else if (state === STATE_RESPONDING) {
-            // Wide smile
+            // Wide smile - corner dots
             context.fillStyle = '#000';
-            context.fillRect(6, 4, 4, 1);
-            context.fillStyle = '#FFF';
-            context.fillRect(7, 4, 2, 0.5);
+            context.fillRect(6, 4, 1, 1);
+            context.fillRect(9, 4, 1, 1);
         }
 
         context.restore();
