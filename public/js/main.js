@@ -14,6 +14,8 @@ import {createColorLayer} from './layers/color.js';
 import {createTextLayer} from './layers/text.js';
 import {createDashboardLayer} from './layers/dashboard.js';
 import { createPlayerProgressLayer } from './layers/player-progress.js';
+import { createSpeechBubbleLayer } from './layers/speech-bubbles.js';
+import { createCoinQuipLayer } from './layers/coin-quips.js';
 import SceneRunner from './SceneRunner.js';
 import Scene from './Scene.js';
 import TimedScene from './TimedScene.js';
@@ -84,6 +86,12 @@ async function main(canvas) {
                 level.events.emit(Level.EVENT_COMPLETE);
             }
         });
+
+        const speechBubbleLayer = createSpeechBubbleLayer(font, level.entities);
+        level.comp.layers.push(speechBubbleLayer);
+
+        const coinQuipLayer = createCoinQuipLayer(font, mario);
+        level.comp.layers.push(coinQuipLayer);
 
         const dashboardLayer = createDashboardLayer(font, mario);
         level.comp.layers.push(dashboardLayer);

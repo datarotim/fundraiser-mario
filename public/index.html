@@ -10,14 +10,29 @@
     <div id="start-overlay">
         <div class="title">THE FUNDRAISER</div>
         <div class="subtitle">A Nonprofit Survival Platformer</div>
+        <div class="tagline" id="start-tagline"></div>
         <div class="controls">
-            <div>Arrow Keys — Move</div>
-            <div>Space — Jump</div>
-            <div>Shift — Run</div>
-            <div>Z — Throw Letter (after power-up)</div>
+            <div>Arrow Keys — Move &amp; Dodge Lapsed Donors</div>
+            <div>Space — Jump Over Budget Cuts</div>
+            <div>Shift — Sprint to the Board Meeting</div>
+            <div>Z — Send Appeal Letters (after Dataro AI)</div>
         </div>
-        <div class="prompt">Click anywhere to start</div>
-        <div class="credit">Powered by Dataro AI</div>
+        <div class="prompt">Click anywhere to start your fiscal year</div>
+        <div class="credit">Powered by Dataro AI — Because Excel Is Not a Strategy</div>
     </div>
+    <script>
+        const taglines = [
+            '"My donors are lapsing and my CRM is on fire"',
+            '"The board wants a report by Monday"',
+            '"At least the pizza party budget survived"',
+            '"Retention rate: it\'s not great"',
+            '"One does not simply hit the annual goal"',
+            '"Ctrl+Z won\'t fix your donor relations"',
+            '"Have you tried turning the CRM off and on"',
+            '"Your lapsed donors send their regards"',
+        ];
+        const el = document.getElementById('start-tagline');
+        if (el) el.textContent = taglines[Math.floor(Math.random() * taglines.length)];
+    </script>
 </body>
 </html>

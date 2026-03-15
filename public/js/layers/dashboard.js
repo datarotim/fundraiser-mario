@@ -13,6 +13,18 @@ const GAME_OVER_MESSAGES = [
     'AI POWERED FUNDRAISING',
     'SMARTER FUNDRAISING',
     'UNLOCK GIVING POTENTIAL',
+    'THE BOARD WILL HEAR ABOUT THIS',
+    'YOUR CRM CRASHED TOO',
+    'EXCEL IS NOT A CRM',
+    'HAVE YOU TRIED MAIL MERGE',
+    'THE GALA LOST MONEY AGAIN',
+    'WHO FORGOT THE RECEIPTS',
+    'THE INTERN SENT THE WRONG LIST',
+    'DONOR STEWARDSHIP MATTERS',
+    'YOUR LAPSED RATE IS SHOWING',
+    'SPREADSHEET OF DOOM',
+    'BUT THE PIZZA PARTY BUDGET',
+    'AT LEAST YOU HAVE PASSION',
 ];
 
 export function createDashboardLayer(font, entity) {
@@ -27,8 +39,8 @@ export function createDashboardLayer(font, entity) {
         const playerTrait = entity.traits.get(Player);
         const timerTrait = entity.traits.get(LevelTimer);
 
-        font.print(playerTrait.name, context, 16, LINE1);
-        font.print(playerTrait.score.toString().padStart(6, '0'), context, 16, LINE2);
+        font.print('RAISED', context, 16, LINE1);
+        font.print('.' + playerTrait.score.toString().padStart(6, '0'), context, 16, LINE2);
 
         font.print('DONORS', context, 88, LINE1);
         font.print('×' + playerTrait.coins.toString().padStart(2, '0'), context, 96, LINE2);
@@ -42,8 +54,17 @@ export function createDashboardLayer(font, entity) {
         // Dataro AI flash when power-up is collected
         const flash = getDataroCollectFlashState();
         if (flash.triggered && (performance.now() - flash.start) < DATARO_FLASH_DURATION_MS) {
-            const flashText = 'DATARO AI ACTIVATED';
-            const x = Math.floor(context.canvas.width / 2) - Math.floor(flashText.length * font.size / 2);
+            const elapsed = performance.now() - flash.start;
+            const w = context.canvas.width;
+            let flashText;
+            if (elapsed < 1500) {
+                flashText = 'DATARO AI ACTIVATED';
+            } else if (elapsed < 2200) {
+                flashText = 'DONOR INSIGHTS UNLOCKED';
+            } else {
+                flashText = 'NOW GO RETAIN THEM ALL';
+            }
+            const x = Math.floor(w / 2) - Math.floor(flashText.length * font.size / 2);
             const y = Math.floor(context.canvas.height / 2) - font.size;
             font.print(flashText, context, x, y);
         }

@@ -1,5 +1,6 @@
 import Trait from '../Trait.js';
 import Stomper from '../traits/Stomper.js';
+import {checkCoinQuip} from '../layers/coin-quips.js';
 
 const COIN_LIFE_THRESHOLD = 100;
 
@@ -20,6 +21,7 @@ export default class Player extends Trait {
 
     addCoins(count) {
         this.coins += count;
+        checkCoinQuip(this.coins);
         this.queue(entity => entity.sounds.add('coin'));
         while (this.coins >= COIN_LIFE_THRESHOLD) {
             this.addLives(1);

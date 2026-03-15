@@ -50,7 +50,16 @@ body {
 #start-overlay .subtitle {
     font-size: 1rem;
     color: #aaa;
-    margin-bottom: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+#start-overlay .tagline {
+    font-size: 0.8rem;
+    color: #9B6FD0;
+    font-style: italic;
+    margin-bottom: 1.5rem;
+    max-width: 80%;
+    text-align: center;
 }
 
 #start-overlay .controls {
