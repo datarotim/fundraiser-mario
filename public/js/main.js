@@ -542,6 +542,14 @@ document.getElementById('signup-form').addEventListener('submit', (e) => {
     showScreen('tutorial-screen');
 });
 
+// Skip signup (for testing / quick play)
+document.getElementById('btn-skip-signup').addEventListener('click', () => {
+    playerData.name = 'Player';
+    playerData.email = '';
+    playerData.org = '';
+    showScreen('tutorial-screen');
+});
+
 // PHASE 3: Tutorial -> Game
 document.getElementById('btn-go').addEventListener('click', () => {
     hideAllOverlays();

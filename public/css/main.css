@@ -539,6 +539,23 @@ html, body {
     margin-top: 2px;
 }
 
+.skip-btn {
+    display: block;
+    margin: 16px auto 0;
+    padding: 8px 16px;
+    background: none;
+    border: none;
+    color: var(--gray);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.skip-btn:hover {
+    color: var(--gray-light);
+}
+
 /* ============================================
    TUTORIAL SCREEN
    ============================================ */
