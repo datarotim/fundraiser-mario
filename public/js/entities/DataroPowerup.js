@@ -9,9 +9,14 @@ import Thrower from '../traits/Thrower.js';
 // Flash state — shared so dashboard.js can read it
 let dataroCollectFlashStart = 0;
 let dataroCollectFlashTriggered = false;
+let dataroActive = false;
 
 export function getDataroCollectFlashState() {
     return {triggered: dataroCollectFlashTriggered, start: dataroCollectFlashStart};
+}
+
+export function isDataroRevealed() {
+    return dataroActive;
 }
 
 class Behavior extends Trait {
@@ -25,9 +30,10 @@ class Behavior extends Trait {
             us.traits.get(Killable).kill();
             them.sounds.add('coin');
 
-            // Trigger flash
+            // Trigger flash and reveal
             dataroCollectFlashTriggered = true;
             dataroCollectFlashStart = performance.now();
+            dataroActive = true;
         }
     }
 }

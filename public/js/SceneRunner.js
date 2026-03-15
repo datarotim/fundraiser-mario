@@ -13,6 +13,12 @@ export default class SceneRunner {
         this.scenes.push(scene);
     }
 
+    // Add a scene without auto-advancing on completion
+    // Use when you handle EVENT_COMPLETE manually
+    addSceneManual(scene) {
+        this.scenes.push(scene);
+    }
+
     runNext() {
         const currentScene = this.scenes[this.sceneIndex];
         if (currentScene) {

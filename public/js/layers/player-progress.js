@@ -1,5 +1,6 @@
 import {findPlayers} from "../player.js";
 import Player from "../traits/Player.js";
+import Retention from "../traits/Retention.js";
 
 function getPlayer(entities) {
     for (const entity of findPlayers(entities)) {
@@ -8,10 +9,14 @@ function getPlayer(entities) {
 }
 
 const QUARTER_FACTS = {
-    '1-1': 'FIND YOUR DONORS',
-    '1-2': 'DATA BEATS GUESSWORK',
-    '1-3': 'RETENTION IS SURVIVAL',
-    '1-4': 'THE BOARD WANTS ANSWERS',
+    '1-1': 'Q1 - FRESH START',
+    '1-2': 'Q2 - MIDYEAR REVIEW',
+    '1-3': 'Q3 - BUDGET CRUNCH',
+    '1-4': 'Q4 - EOY PUSH',
+    '2-1': 'YEAR 2 - HIGHER TARGETS',
+    '2-2': 'THE BOARD IS WATCHING',
+    '2-3': 'RETENTION OR BUST',
+    '2-4': 'FINAL COUNTDOWN',
 };
 
 export function createPlayerProgressLayer(font, level) {
@@ -24,8 +29,14 @@ export function createPlayerProgressLayer(font, level) {
 
     return function drawPlayerProgress(context) {
         const entity = getPlayer(level.entities);
+        if (!entity) return;
         const player = entity.traits.get(Player);
-        font.print('QUARTER ' + level.name, context, size * 11, size * 12);
+
+        const fact = QUARTER_FACTS[level.name] || 'QUARTER ' + level.name;
+        const factX = Math.floor(context.canvas.width / 2) - Math.floor(fact.length * size / 2);
+        font.print(fact, context, factX, size * 11);
+
+        font.print('QUARTER ' + level.name, context, size * 11, size * 13);
 
         font.print('×' + player.lives.toString().padStart(3, ' '),
             context, size * 16, size * 16);
@@ -35,10 +46,12 @@ export function createPlayerProgressLayer(font, level) {
         entity.draw(spriteBufferContext);
         context.drawImage(spriteBuffer, size * 13, size * 15);
 
-        const fact = QUARTER_FACTS[level.name];
-        if (fact) {
-            const factX = Math.floor(context.canvas.width / 2) - Math.floor(fact.length * size / 2);
-            font.print(fact, context, factX, size * 19);
+        // Show retention status
+        const retention = entity.traits.get(Retention);
+        if (retention) {
+            const retText = 'RETENTION ' + Math.floor(retention.rate) + '!';
+            const retX = Math.floor(context.canvas.width / 2) - Math.floor(retText.length * size / 2);
+            font.print(retText, context, retX, size * 19);
         }
     };
 }
