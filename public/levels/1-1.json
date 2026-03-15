@@ -245,6 +245,10 @@
             "pos": [352, 192]
         },
         {
+            "name": "donor-business",
+            "pos": [480, 192]
+        },
+        {
             "name": "goomba-brown",
             "pos": [640, 192]
         },
@@ -273,6 +277,14 @@
             "pos": [1576, 192]
         },
         {
+            "name": "donor-casual",
+            "pos": [1200, 192]
+        },
+        {
+            "name": "donor-formal",
+            "pos": [1500, 192]
+        },
+        {
             "name": "koopa-green",
             "pos": [1712, 185]
         },
@@ -299,6 +311,14 @@
         {
             "name": "goomba-brown",
             "pos": [2072, 192]
+        },
+        {
+            "name": "donor-business",
+            "pos": [2600, 192]
+        },
+        {
+            "name": "donor-casual",
+            "pos": [2700, 192]
         },
         {
             "name": "goomba-brown",

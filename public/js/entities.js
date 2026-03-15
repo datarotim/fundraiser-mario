@@ -10,6 +10,7 @@ import {loadPipePortal} from './entities/PipePortal.js';
 import {loadFlagPole} from './entities/FlagPole.js';
 import {loadLetter} from './entities/Letter.js';
 import {loadDataroPowerup} from './entities/DataroPowerup.js';
+import {loadDonorBusiness, loadDonorCasual, loadDonorFormal} from './entities/Donor.js';
 
 function createPool(size) {
     const pool = [];
@@ -77,6 +78,12 @@ export async function loadEntities(audioContext) {
             .then(addAs('letter')),
         setup(loadDataroPowerup)
             .then(addAs('dataro-powerup')),
+        setup(loadDonorBusiness)
+            .then(addAs('donor-business')),
+        setup(loadDonorCasual)
+            .then(addAs('donor-casual')),
+        setup(loadDonorFormal)
+            .then(addAs('donor-formal')),
     ]);
 
     return entityFactories;
