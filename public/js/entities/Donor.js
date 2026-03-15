@@ -6,12 +6,11 @@ import Physics from '../traits/Physics.js';
 import Solid from '../traits/Solid.js';
 import Stomper from '../traits/Stomper.js';
 import Player from '../traits/Player.js';
+import {isDataroRevealed} from './DataroPowerup.js';
 
 const STATE_WALKING = Symbol('walking');
 const STATE_RESPONDING = Symbol('responding');
 const STATE_FLEEING = Symbol('fleeing');
-
-const APPEAL_THRESHOLD = 3;
 const RESPOND_DURATION = 1.5;
 const FLEE_SPEED = 120;
 const DONATION_POINTS = 500;
@@ -20,7 +19,8 @@ class Behavior extends Trait {
     constructor() {
         super();
         this.state = STATE_WALKING;
-        this.appealCount = 0;
+        this.askLimit = Math.floor(Math.random() * 5) + 1;
+        this.remainingAsks = this.askLimit;
         this.respondTimer = 0;
         this.walkSpeed = null;
         this.speechBubbleText = '';
@@ -54,22 +54,19 @@ class Behavior extends Trait {
             return;
         }
 
-        // If already responding, don't re-award points, just count
-        if (this.state === STATE_RESPONDING) {
-            this.appealCount++;
-            if (this.appealCount >= APPEAL_THRESHOLD) {
-                this.startFleeing(us, them);
-            }
+        this.remainingAsks--;
+
+        if (this.remainingAsks <= 0) {
+            this.startFleeing(us, them);
             return;
         }
 
-        this.appealCount++;
-
-        if (this.appealCount >= APPEAL_THRESHOLD) {
-            this.startFleeing(us, them);
-        } else {
-            this.startResponding(us, them);
+        if (this.state === STATE_RESPONDING) {
+            // Already responding, just count (no re-award)
+            return;
         }
+
+        this.startResponding(us, them);
     }
 
     startResponding(us, them) {
@@ -299,6 +296,11 @@ function createDonorDrawFunction(style) {
             drawSpeechBubble(context, behavior.speechBubbleText, state);
         }
 
+        // Ask limit indicator (only visible after Dataro power-up)
+        if (isDataroRevealed() && state !== STATE_FLEEING && !this.traits.get(Killable).dead && behavior.remainingAsks > 0) {
+            drawAskIndicator(context, behavior.remainingAsks);
+        }
+
         context.restore(); // restore DRAW_OFFSET translate
     };
 }
@@ -371,6 +373,9 @@ const PIXEL_CHARS = {
     'o': [[1,1],[0,2],[2,2],[0,3],[2,3],[1,4]],
     ' ': [],
     'm': [[0,1],[1,1],[2,1],[0,2],[1,2],[2,2],[0,3],[2,3],[0,4],[2,4]],
+    'x': [[0,1],[2,1],[1,2],[0,3],[2,3]],
+    '3': [[0,0],[1,0],[2,0],[2,1],[0,2],[1,2],[2,2],[2,3],[0,4],[1,4],[2,4]],
+    '4': [[0,0],[2,0],[0,1],[2,1],[0,2],[1,2],[2,2],[2,3],[2,4]],
 };
 
 function drawPixelText(context, text, startX, startY) {
@@ -384,6 +389,34 @@ function drawPixelText(context, text, startX, startY) {
         }
         x += 4;
     }
+}
+
+
+function drawAskIndicator(context, remainingAsks) {
+    // Position centered above the donor's head (in DRAW_OFFSET translated space)
+    const indicatorY = -8;
+    const startX = 1;
+
+    context.save();
+
+    // Draw mini envelope icon (7x5)
+    context.fillStyle = '#fff';
+    context.fillRect(startX, indicatorY, 7, 5);
+    context.strokeStyle = '#aaa';
+    context.lineWidth = 0.5;
+    context.strokeRect(startX, indicatorY, 7, 5);
+    // Envelope flap
+    context.beginPath();
+    context.moveTo(startX, indicatorY);
+    context.lineTo(startX + 3.5, indicatorY + 2.5);
+    context.lineTo(startX + 7, indicatorY);
+    context.stroke();
+
+    // Draw "xN" text next to envelope
+    context.fillStyle = '#fff';
+    drawPixelText(context, 'x' + remainingAsks, startX + 8, indicatorY - 1);
+
+    context.restore();
 }
 
 
