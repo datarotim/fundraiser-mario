@@ -469,21 +469,21 @@
     ],
     "entities": [
         {
-            "name": "goomba-brown",
+            "name": "donor-business",
             "pos": [
                 704,
                 48
             ]
         },
         {
-            "name": "goomba-brown",
+            "name": "donor-casual",
             "pos": [
                 736,
                 48
             ]
         },
         {
-            "name": "goomba-brown",
+            "name": "donor-formal",
             "pos": [
                 1280,
                 64

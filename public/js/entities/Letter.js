@@ -6,6 +6,15 @@ import Velocity from '../traits/Velocity.js';
 import Stomper from '../traits/Stomper.js';
 import Player from '../traits/Player.js';
 
+function getDonorBehavior(entity) {
+    for (const [, trait] of entity.traits) {
+        if (trait.handleLetterHit) {
+            return trait;
+        }
+    }
+    return null;
+}
+
 class Behavior extends Trait {
     constructor() {
         super();
@@ -19,6 +28,14 @@ class Behavior extends Trait {
 
         // Don't hit the player (entities with Stomper)
         if (them.traits.has(Stomper)) {
+            return;
+        }
+
+        // Check if target is a donor - trigger appeal response instead of kill
+        const donorBehavior = getDonorBehavior(them);
+        if (donorBehavior) {
+            donorBehavior.handleLetterHit(them, us);
+            us.traits.get(Killable).kill();
             return;
         }
 

@@ -14,10 +14,12 @@ export function createSpriteLayer(entities, width = 64, height = 64) {
 
             entity.draw(spriteBufferContext);
 
+            const offsetX = entity.drawOffset ? entity.drawOffset.x : 0;
+            const offsetY = entity.drawOffset ? entity.drawOffset.y : 0;
             context.drawImage(
                 spriteBuffer,
-                Math.floor(entity.pos.x - camera.pos.x),
-                Math.floor(entity.pos.y - camera.pos.y));
+                Math.floor(entity.pos.x - camera.pos.x + offsetX),
+                Math.floor(entity.pos.y - camera.pos.y + offsetY));
         });
     };
 }

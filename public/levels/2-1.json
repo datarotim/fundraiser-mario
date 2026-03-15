@@ -597,165 +597,92 @@
     ],
     "entities": [
         {
-            "name": "goomba-brown",
-            "pos": [
-                384,
-                112
-            ]
+            "name": "donor-business",
+            "pos": [384, 112]
         },
         {
-            "name": "koopa-green",
-            "pos": [
-                496,
-                185
-            ]
+            "name": "donor-casual",
+            "pos": [496, 192]
         },
         {
-            "name": "koopa-green",
-            "pos": [
-                528,
-                185
-            ]
+            "name": "donor-formal",
+            "pos": [528, 192]
         },
         {
-            "name": "goomba-brown",
-            "pos": [
-                672,
-                192
-            ]
+            "name": "donor-business",
+            "pos": [672, 192]
         },
         {
-            "name": "goomba-brown",
-            "pos": [
-                696,
-                192
-            ]
+            "name": "donor-casual",
+            "pos": [696, 192]
         },
         {
-            "name": "koopa-green",
-            "pos": [
-                880,
-                121
-            ]
+            "name": "donor-formal",
+            "pos": [880, 192]
         },
         {
-            "name": "goomba-brown",
-            "pos": [
-                944,
-                192
-            ]
+            "name": "donor-business",
+            "pos": [944, 192]
         },
         {
-            "name": "goomba-brown",
-            "pos": [
-                968,
-                192
-            ]
+            "name": "donor-casual",
+            "pos": [968, 192]
         },
         {
-            "name": "koopa-green",
-            "pos": [
-                1056,
-                185
-            ]
+            "name": "donor-formal",
+            "pos": [1056, 192]
         },
         {
-            "name": "goomba-brown",
-            "pos": [
-                1088,
-                192
-            ]
+            "name": "donor-business",
+            "pos": [1088, 192]
         },
         {
-            "name": "goomba-brown",
-            "pos": [
-                1088,
-                192
-            ]
+            "name": "donor-casual",
+            "pos": [1112, 192]
         },
         {
-            "name": "goomba-brown",
-            "pos": [
-                1112,
-                192
-            ]
+            "name": "donor-formal",
+            "pos": [1136, 192]
         },
         {
-            "name": "goomba-brown",
-            "pos": [
-                1136,
-                192
-            ]
+            "name": "donor-business",
+            "pos": [1392, 192]
         },
         {
-            "name": "goomba-brown",
-            "pos": [
-                1392,
-                192
-            ]
+            "name": "donor-casual",
+            "pos": [1416, 192]
         },
         {
-            "name": "goomba-brown",
-            "pos": [
-                1416,
-                192
-            ]
+            "name": "donor-formal",
+            "pos": [1440, 192]
         },
         {
-            "name": "goomba-brown",
-            "pos": [
-                1440,
-                192
-            ]
+            "name": "donor-business",
+            "pos": [1640, 128]
         },
         {
-            "name": "goomba-brown",
-            "pos": [
-                1640,
-                128
-            ]
+            "name": "donor-casual",
+            "pos": [1832, 160]
         },
         {
-            "name": "goomba-brown",
-            "pos": [
-                1832,
-                160
-            ]
+            "name": "donor-formal",
+            "pos": [1920, 192]
         },
         {
-            "name": "goomba-brown",
-            "pos": [
-                1920,
-                192
-            ]
+            "name": "donor-business",
+            "pos": [2192, 192]
         },
         {
-            "name": "koopa-green",
-            "pos": [
-                2192,
-                185
-            ]
+            "name": "donor-casual",
+            "pos": [2592, 192]
         },
         {
-            "name": "goomba-brown",
-            "pos": [
-                2592,
-                192
-            ]
+            "name": "donor-formal",
+            "pos": [2616, 192]
         },
         {
-            "name": "koopa-green",
-            "pos": [
-                2616,
-                185
-            ]
-        },
-        {
-            "name": "koopa-green",
-            "pos": [
-                2960,
-                185
-            ]
+            "name": "donor-business",
+            "pos": [2960, 192]
         }
     ],
     "triggers": []
