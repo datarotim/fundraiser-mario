@@ -1,23 +1,202 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>The Fundraiser — A Nonprofit Survival Platformer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>The Fundraiser — Powered by Dataro</title>
+    <meta name="description" content="Can you survive the nonprofit world? Play The Fundraiser, a retro platformer by Dataro.">
     <link rel="stylesheet" href="/css/main.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script type="module" src="/js/main.js"></script>
 </head>
 <body>
     <canvas id="screen" width="256" height="240" class="aspect-4-3"></canvas>
-    <div id="start-overlay">
-        <div class="title">THE FUNDRAISER</div>
-        <div class="subtitle">A Nonprofit Survival Platformer</div>
-        <div class="controls">
-            <div>Arrow Keys — Move</div>
-            <div>Space — Jump</div>
-            <div>Shift — Run</div>
-            <div>Z — Throw Letter (after power-up)</div>
+
+    <!-- PHASE 1: Attract / Splash Screen -->
+    <div id="splash-screen" class="overlay-screen active">
+        <div class="particle-field" id="particles"></div>
+        <div class="splash-glow"></div>
+        <div class="splash-content">
+            <div class="dataro-badge">
+                <div class="badge-icon">D</div>
+                <span>DATARO</span>
+            </div>
+            <div class="splash-presents">presents</div>
+            <h1 class="splash-title">
+                <span class="title-line-1">THE</span>
+                <span class="title-line-2">FUNDRAISER</span>
+            </h1>
+            <p class="splash-tagline" id="rotating-tagline">Can you survive the nonprofit world?</p>
+            <div class="splash-features">
+                <div class="feature-pill"><span class="pill-icon">🎮</span> Retro Platformer</div>
+                <div class="feature-pill"><span class="pill-icon">💌</span> Save Donors</div>
+                <div class="feature-pill"><span class="pill-icon">🤖</span> AI Power-ups</div>
+            </div>
+            <button class="cta-button pulse-glow big" id="btn-play" autofocus>
+                PLAY NOW
+                <span class="btn-arrow">→</span>
+            </button>
+            <div class="splash-footer">
+                <div class="conf-badge">🏆 Top Score Wins a Prize!</div>
+            </div>
         </div>
-        <div class="prompt">Click anywhere to start</div>
-        <div class="credit">Powered by Dataro AI</div>
+        <div class="floating-coins">
+            <span class="coin c1">$</span>
+            <span class="coin c2">$</span>
+            <span class="coin c3">$</span>
+            <span class="coin c4">$</span>
+            <span class="coin c5">$</span>
+            <span class="coin c6">$</span>
+        </div>
+    </div>
+
+    <!-- PHASE 2: Quick Email Capture -->
+    <div id="signup-screen" class="overlay-screen">
+        <div class="signup-content">
+            <div class="signup-header">
+                <div class="dataro-badge small">
+                    <div class="badge-icon">D</div>
+                    <span>DATARO</span>
+                </div>
+                <h2 class="signup-title">Ready to play?</h2>
+                <p class="signup-subtitle">Quick sign-up, then straight to the action!</p>
+            </div>
+            <form id="signup-form" class="signup-form" autocomplete="on" novalidate>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="player-name">First Name</label>
+                        <input type="text" id="player-name" name="given-name" placeholder="Jane" required autocomplete="given-name" maxlength="30" />
+                    </div>
+                    <div class="form-group">
+                        <label for="player-lastname">Last Name</label>
+                        <input type="text" id="player-lastname" name="family-name" placeholder="Smith" autocomplete="family-name" maxlength="30" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="player-email">Work Email <span class="required-star">*</span></label>
+                    <input type="email" id="player-email" name="email" placeholder="jane@nonprofit.org" required autocomplete="email" />
+                    <span class="field-error" id="email-error">Please enter a valid email address</span>
+                </div>
+                <div class="form-group">
+                    <label for="player-org">Organisation</label>
+                    <input type="text" id="player-org" name="organization" placeholder="Your Nonprofit" autocomplete="organization" maxlength="60" />
+                </div>
+                <button type="submit" class="cta-button big" id="btn-start-game">
+                    START GAME
+                    <span class="btn-arrow">→</span>
+                </button>
+                <p class="form-disclaimer">We'll email you your score + a free donor retention guide</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- PHASE 3: Ultra-Simple Tutorial -->
+    <div id="tutorial-screen" class="overlay-screen">
+        <div class="tutorial-content">
+            <h2 class="tutorial-title">How to Play</h2>
+            <p class="tutorial-subtitle">Just 2 controls — it's that easy!</p>
+
+            <div class="tutorial-controls">
+                <div class="control-item big-control">
+                    <div class="key-visual">
+                        <span class="key arrow-key">←</span>
+                        <span class="key arrow-key">→</span>
+                    </div>
+                    <span class="control-label">Arrow Keys = Move</span>
+                </div>
+                <div class="control-divider">+</div>
+                <div class="control-item big-control">
+                    <div class="key-visual">
+                        <span class="key wide space-key">SPACE</span>
+                    </div>
+                    <span class="control-label">Spacebar = Jump</span>
+                </div>
+            </div>
+
+            <div class="tutorial-goal">
+                <div class="goal-header">Your Mission</div>
+                <div class="goal-items">
+                    <div class="goal-item">
+                        <span class="goal-icon">💰</span>
+                        <span>Collect coins to <strong>save donors</strong></span>
+                    </div>
+                    <div class="goal-item">
+                        <span class="goal-icon">👾</span>
+                        <span><strong>Jump on enemies</strong> to defeat them</span>
+                    </div>
+                    <div class="goal-item">
+                        <span class="goal-icon">💜</span>
+                        <span>Grab the <strong>Dataro power-up</strong> for superpowers!</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="cta-button pulse-glow big" id="btn-go">
+                LET'S GO!
+                <span class="btn-arrow">→</span>
+            </button>
+            <p class="tutorial-hint">Tip: Hold Shift to run faster</p>
+        </div>
+    </div>
+
+    <!-- PHASE 4: Game Over / Results -->
+    <div id="gameover-screen" class="overlay-screen">
+        <div class="gameover-content">
+            <div class="gameover-header">
+                <div class="dataro-badge small">
+                    <div class="badge-icon">D</div>
+                    <span>DATARO</span>
+                </div>
+            </div>
+            <h2 class="gameover-title">Game Over!</h2>
+            <div class="score-display">
+                <div class="score-label">YOUR SCORE</div>
+                <div class="score-value" id="final-score">0</div>
+            </div>
+            <div class="score-stats">
+                <div class="stat">
+                    <span class="stat-value" id="final-donors">0</span>
+                    <span class="stat-label">Donors Saved</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="final-world">1-1</span>
+                    <span class="stat-label">Level Reached</span>
+                </div>
+            </div>
+            <div class="rank-display" id="rank-display">
+                <span class="rank-text">You ranked <strong id="player-rank">#1</strong> today!</span>
+            </div>
+            <div class="gameover-message">
+                <p class="message-text" id="gameover-msg">Every donor counts. With Dataro AI, you never miss one.</p>
+            </div>
+            <div class="gameover-cta">
+                <button class="cta-button big" id="btn-retry">
+                    PLAY AGAIN
+                    <span class="btn-arrow">→</span>
+                </button>
+                <a href="https://dataro.com?utm_source=game&utm_medium=conference&utm_campaign=fundraiser_game" target="_blank" rel="noopener" class="cta-button secondary" id="btn-dataro">
+                    DISCOVER DATARO AI
+                    <span class="btn-arrow">→</span>
+                </a>
+            </div>
+            <div class="leaderboard" id="leaderboard">
+                <h3 class="leaderboard-title">🏆 Today's Top Scores</h3>
+                <div class="leaderboard-list" id="leaderboard-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Touch Controls -->
+    <div id="touch-controls" class="touch-controls hidden">
+        <div class="touch-dpad-area">
+            <button class="touch-btn touch-dpad" id="touch-btn-left" aria-label="Move Left">◀</button>
+            <button class="touch-btn touch-dpad" id="touch-btn-right" aria-label="Move Right">▶</button>
+        </div>
+        <div class="touch-action-area">
+            <button class="touch-btn touch-action touch-jump-btn" id="touch-btn-jump" aria-label="Jump">JUMP</button>
+        </div>
     </div>
 </body>
 </html>
