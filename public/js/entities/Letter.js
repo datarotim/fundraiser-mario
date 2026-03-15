@@ -26,8 +26,9 @@ class Behavior extends Trait {
             them.traits.get(Killable).kill();
 
             if (us.owner && us.owner.traits.has(Player)) {
+                const donorValue = them.donorType ? them.donorType.value : 200;
                 us.owner.traits.get(Player).addCoins(1);
-                us.owner.traits.get(Player).score += 200;
+                us.owner.traits.get(Player).score += donorValue;
             }
 
             us.traits.get(Killable).kill();
