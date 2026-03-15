@@ -175,6 +175,11 @@ function createDonorDrawFunction(style) {
         const state = behavior.state;
         const lifetime = this.lifetime;
 
+        // Offset all drawing down to leave room for speech bubble in buffer
+        const DRAW_OFFSET = 20;
+        context.save();
+        context.translate(0, DRAW_OFFSET);
+
         // Walking animation - faster when fleeing
         const walkSpeed = state === STATE_FLEEING ? 16 : 8;
         const walkCycle = Math.sin(lifetime * walkSpeed);
@@ -289,10 +294,12 @@ function createDonorDrawFunction(style) {
 
         context.restore();
 
-        // Speech bubble (drawn after restore so it's not flipped)
+        // Speech bubble (drawn after flip restore, but still within DRAW_OFFSET translate)
         if (behavior.speechBubbleText) {
             drawSpeechBubble(context, behavior.speechBubbleText, state);
         }
+
+        context.restore(); // restore DRAW_OFFSET translate
     };
 }
 
@@ -395,6 +402,7 @@ function createDonorFactory(style) {
 
         donor.traits.get(PendulumMove).speed = -20;
         donor.donorType = style;
+        donor.drawOffset = {x: 0, y: -20};
 
         donor.draw = drawFn;
 
