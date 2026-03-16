@@ -261,10 +261,6 @@
             "pos": [780, 192]
         },
         {
-            "name": "donor-business",
-            "pos": [816, 192]
-        },
-        {
             "name": "donor-casual",
             "pos": [840, 192]
         },
@@ -289,10 +285,6 @@
             "pos": [1464, 192]
         },
         {
-            "name": "donor-formal",
-            "pos": [1500, 192]
-        },
-        {
             "name": "donor-business",
             "pos": [1552, 192]
         },
@@ -311,10 +303,6 @@
         {
             "name": "donor-casual",
             "pos": [1848, 192]
-        },
-        {
-            "name": "donor-formal",
-            "pos": [1984, 192]
         },
         {
             "name": "donor-business",
@@ -339,10 +327,6 @@
         {
             "name": "donor-business",
             "pos": [2600, 192]
-        },
-        {
-            "name": "donor-casual",
-            "pos": [2700, 192]
         },
         {
             "name": "donor-formal",
