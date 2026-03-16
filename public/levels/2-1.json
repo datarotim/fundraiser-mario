@@ -646,7 +646,11 @@
         },
         {
             "name": "duper",
-            "pos": [1212, 192]
+            "pos": [1200, 192]
+        },
+        {
+            "name": "duper",
+            "pos": [1224, 192]
         },
         {
             "name": "donor-casual",
