@@ -35,13 +35,19 @@ const playerData = {
 };
 
 /* ============================================
-   LEADERBOARD (localStorage)
+   LEADERBOARD (server + localStorage fallback)
    ============================================ */
 
+// In-memory cache of today's leaderboard (populated from server)
+let _leaderboardCache = [];
+
 function getLeaderboard() {
+    return _leaderboardCache;
+}
+
+function getLeaderboardFromLocalStorage() {
     try {
         const data = JSON.parse(localStorage.getItem('dataro_leaderboard') || '[]');
-        // Filter to today's scores only for conference freshness
         const today = new Date().toDateString();
         return data.filter(e => {
             try { return new Date(e.time).toDateString() === today; } catch { return false; }
@@ -51,7 +57,7 @@ function getLeaderboard() {
     }
 }
 
-function addToLeaderboard(name, score, donors, world) {
+function saveToLocalStorage(name, score, donors, world) {
     let allData;
     try {
         allData = JSON.parse(localStorage.getItem('dataro_leaderboard') || '[]');
@@ -64,14 +70,52 @@ function addToLeaderboard(name, score, donors, world) {
     try {
         localStorage.setItem('dataro_leaderboard', JSON.stringify(trimmed));
     } catch { /* storage full */ }
+}
 
-    // Return today's board
-    return getLeaderboard();
+async function addToLeaderboard(name, score, donors, world) {
+    // Always save locally as fallback
+    saveToLocalStorage(name, score, donors, world);
+
+    // Post to server
+    try {
+        const resp = await fetch('/api/scores', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name,
+                score,
+                donors,
+                world,
+                email: playerData.email || '',
+                org: playerData.org || '',
+            }),
+        });
+        if (resp.ok) {
+            const data = await resp.json();
+            _leaderboardCache = data.leaderboard || [];
+            return _leaderboardCache;
+        }
+    } catch { /* network error, fall back to local */ }
+
+    _leaderboardCache = getLeaderboardFromLocalStorage();
+    return _leaderboardCache;
+}
+
+async function fetchLeaderboard() {
+    try {
+        const resp = await fetch('/api/scores');
+        if (resp.ok) {
+            const data = await resp.json();
+            _leaderboardCache = data.leaderboard || [];
+            return _leaderboardCache;
+        }
+    } catch { /* network error */ }
+    _leaderboardCache = getLeaderboardFromLocalStorage();
+    return _leaderboardCache;
 }
 
 function getPlayerRank(score) {
     const board = getLeaderboard();
-    // Board is sorted descending. Find first entry with score < ours.
     let rank = board.length + 1;
     for (let i = 0; i < board.length; i++) {
         if (board[i].score <= score) {
@@ -374,7 +418,7 @@ async function main(canvas) {
     let worldsVisited = 0;
     let isDeathRestart = false;
 
-    function showGameOver() {
+    async function showGameOver() {
         const pt = mario.traits.get(Player);
         const score = pt.score;
         const donors = pt.coins;
@@ -395,9 +439,9 @@ async function main(canvas) {
         document.getElementById('gameover-msg').textContent =
             DATARO_MESSAGES[Math.floor(Math.random() * DATARO_MESSAGES.length)];
 
-        // Leaderboard
+        // Leaderboard (server + localStorage fallback)
         const name = playerData.name || 'Anonymous';
-        addToLeaderboard(name, score, donors, world);
+        await addToLeaderboard(name, score, donors, world);
         renderLeaderboard(name, score);
 
         // Rank
@@ -411,7 +455,7 @@ async function main(canvas) {
         const touchCtrl = document.getElementById('touch-controls');
         if (touchCtrl) touchCtrl.classList.add('hidden');
 
-        // Store lead with score for follow-up
+        // Store lead with score locally as backup
         try {
             const leads = JSON.parse(localStorage.getItem('dataro_leads') || '[]');
             const existingIdx = leads.findIndex(l => l.email === playerData.email);
@@ -606,6 +650,9 @@ const canvas = document.getElementById('screen');
 // Init splash effects
 initParticles();
 startTaglineRotation();
+
+// Pre-fetch server leaderboard
+fetchLeaderboard();
 
 // PHASE 1: Splash -> Signup
 document.getElementById('btn-play').addEventListener('click', () => {
