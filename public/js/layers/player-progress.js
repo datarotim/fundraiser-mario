@@ -1,4 +1,4 @@
-import {findPlayers} from "../player.js";
+import {findPlayers, getWorldDisplayName} from "../player.js";
 import Player from "../traits/Player.js";
 
 
@@ -13,10 +13,10 @@ const QUARTER_FACTS = {
     '1-2': 'Q2 - MIDYEAR REVIEW',
     '1-3': 'Q3 - BUDGET CRUNCH',
     '1-4': 'Q4 - EOY PUSH',
-    '2-1': 'YEAR 2 - HIGHER TARGETS',
-    '2-2': 'THE BOARD IS WATCHING',
-    '2-3': 'RETENTION OR BUST',
-    '2-4': 'FINAL COUNTDOWN',
+    '2-1': 'Q5 - HIGHER TARGETS',
+    '2-2': 'Q6 - THE BOARD IS WATCHING',
+    '2-3': 'Q7 - RETENTION OR BUST',
+    '2-4': 'Q8 - FINAL COUNTDOWN',
 };
 
 export function createPlayerProgressLayer(font, level) {
@@ -32,11 +32,11 @@ export function createPlayerProgressLayer(font, level) {
         if (!entity) return;
         const player = entity.traits.get(Player);
 
-        const fact = QUARTER_FACTS[level.name] || 'QUARTER ' + level.name;
+        const fact = QUARTER_FACTS[level.name] || 'QUARTER ' + getWorldDisplayName(level.name);
         const factX = Math.floor(context.canvas.width / 2) - Math.floor(fact.length * size / 2);
         font.print(fact, context, factX, size * 11);
 
-        font.print('QUARTER ' + level.name, context, size * 11, size * 13);
+        font.print('QUARTER ' + getWorldDisplayName(level.name), context, size * 11, size * 13);
 
         font.print('×' + player.lives.toString().padStart(3, ' '),
             context, size * 16, size * 16);

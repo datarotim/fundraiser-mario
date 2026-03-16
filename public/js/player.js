@@ -14,6 +14,10 @@ const QUARTER_NAMES = {
     '3-1': 'Q9',
 };
 
+export function getWorldDisplayName(worldName) {
+    return QUARTER_NAMES[worldName] || worldName;
+}
+
 export function makePlayer(entity, name) {
     const player = new Player();
     player.name = "FUNDRAISER";

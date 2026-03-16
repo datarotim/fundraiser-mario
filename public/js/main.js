@@ -97,7 +97,7 @@ function renderLeaderboard(currentPlayerName, currentScore) {
         div.innerHTML = `
             <span class="lb-rank">#${i + 1}</span>
             <span class="lb-name">${escapeHtml(truncate(entry.name, 20))}</span>
-            <span class="lb-score">${entry.score.toLocaleString()}</span>
+            <span class="lb-score">$${entry.score.toLocaleString()}</span>
         `;
         list.appendChild(div);
     });
@@ -416,7 +416,7 @@ async function main(canvas) {
         const tick = (now) => {
             const progress = Math.min((now - start) / duration, 1);
             const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
-            el.textContent = Math.floor(target * eased).toLocaleString();
+            el.textContent = '$' + Math.floor(target * eased).toLocaleString();
             if (progress < 1) requestAnimationFrame(tick);
         };
         requestAnimationFrame(tick);

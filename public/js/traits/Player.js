@@ -14,13 +14,13 @@ export default class Player extends Trait {
         this.lettersSent = 0;
 
         this.listen(Stomper.EVENT_STOMP, () => {
-            this.score += 100;
             console.log('Score', this.score);
         });
     }
 
     addCoins(count) {
         this.coins += count;
+        this.score += 100 * count;
         this.queue(entity => entity.sounds.add('coin'));
         while (this.coins >= COIN_LIFE_THRESHOLD) {
             this.addLives(1);

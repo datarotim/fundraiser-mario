@@ -18,7 +18,7 @@ const APPEAL_THRESHOLD = 3;
 const DISGRUNTLED_THRESHOLD = 5;
 const RESPOND_DURATION = 1.5;
 const FLEE_SPEED = 120;
-const DONATION_POINTS = 500;
+const DONATION_AMOUNTS = [25, 50, 100];
 const CHASE_SPEED = 50;
 const FIRE_INTERVAL = 2.5;
 const BURST_SIZE = 3;
@@ -34,6 +34,9 @@ class Behavior extends Trait {
         this.respondTimer = 0;
         this.walkSpeed = null;
         this.speechBubbleText = '';
+        this.penaltyText = '';
+        this.totalGiven = 0;
+        this.playerRef = null;
         this.fleeDirection = 1;
         this.fireTimer = 0;
         this.burstCount = 0;
@@ -111,12 +114,13 @@ class Behavior extends Trait {
         this.respondTimer = 0;
         this.state = STATE_RESPONDING;
 
-        const responses = ['$25!', '$50!', '$100!', 'Sure!', 'OK!'];
-        this.speechBubbleText = responses[Math.floor(Math.random() * responses.length)];
+        const amount = DONATION_AMOUNTS[Math.floor(Math.random() * DONATION_AMOUNTS.length)];
+        this.speechBubbleText = '$' + amount + '!';
+        this.totalGiven += amount;
 
         if (them && them.owner && them.owner.traits.has(Player)) {
-            them.owner.traits.get(Player).addCoins(2);
-            them.owner.traits.get(Player).score += DONATION_POINTS;
+            this.playerRef = them.owner.traits.get(Player);
+            this.playerRef.score += amount;
         }
     }
 
@@ -126,6 +130,17 @@ class Behavior extends Trait {
         this.speechBubbleText = 'No more!';
         this.respondTimer = 0;
         this.fleeStarted = false;
+
+        // Deduct all donations this donor gave
+        if (this.totalGiven > 0) {
+            if (!this.playerRef && them && them.owner && them.owner.traits.has(Player)) {
+                this.playerRef = them.owner.traits.get(Player);
+            }
+            if (this.playerRef) {
+                this.playerRef.score = Math.max(0, this.playerRef.score - this.totalGiven);
+            }
+            this.penaltyText = '-$' + this.totalGiven;
+        }
 
         const fleeDir = them ? Math.sign(us.pos.x - them.pos.x) : 1;
         this.fleeDirection = fleeDir || 1;
@@ -204,6 +219,7 @@ class Behavior extends Trait {
 
             if (this.respondTimer > 2.0) {
                 this.speechBubbleText = '';
+                this.penaltyText = '';
             }
             if (this.respondTimer > 7) {
                 us.traits.get(Killable).kill();
@@ -445,8 +461,14 @@ function createDonorDrawFunction(style) {
         context.restore(); // restore flip + scale
 
         // Speech bubble (drawn at normal scale, above the character)
-        if (behavior.speechBubbleText) {
-            drawSpeechBubble(context, behavior.speechBubbleText, state);
+        if (behavior.penaltyText) {
+            drawTwoLineBubble(context, behavior.penaltyText, 'No more!');
+        } else if (behavior.speechBubbleText) {
+            if (state === STATE_RESPONDING) {
+                drawMoneyBubble(context, behavior.speechBubbleText, false);
+            } else {
+                drawSpeechBubble(context, behavior.speechBubbleText, state);
+            }
         }
 
         // Ask limit indicator (visible after Dataro power-up)
@@ -508,6 +530,101 @@ function drawSpeechBubble(context, text, state) {
 }
 
 
+function drawMoneyBubble(context, text, isNegative) {
+    const bubbleX = 12;
+    const bubbleY = -16;
+    const padding = 2;
+    const charWidth = 4;
+    const textWidth = text.length * charWidth;
+    const bubbleWidth = textWidth + padding * 2 + 2;
+    const bubbleHeight = 10;
+
+    context.save();
+
+    const bgColor = isNegative ? '#FFE0E0' : '#E8F8E8';
+    const borderColor = isNegative ? '#E74C3C' : '#27AE60';
+    const textColor = isNegative ? '#CC0000' : '#1E8449';
+
+    // Bubble body
+    context.fillStyle = bgColor;
+    context.fillRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight);
+
+    // Border
+    context.strokeStyle = borderColor;
+    context.lineWidth = 0.5;
+    context.strokeRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight);
+
+    // Tail
+    context.fillStyle = bgColor;
+    context.beginPath();
+    context.moveTo(bubbleX + 4, bubbleY + bubbleHeight);
+    context.lineTo(bubbleX + 6, bubbleY + bubbleHeight + 3);
+    context.lineTo(bubbleX + 8, bubbleY + bubbleHeight);
+    context.closePath();
+    context.fill();
+    context.strokeStyle = borderColor;
+    context.beginPath();
+    context.moveTo(bubbleX + 4, bubbleY + bubbleHeight);
+    context.lineTo(bubbleX + 6, bubbleY + bubbleHeight + 3);
+    context.lineTo(bubbleX + 8, bubbleY + bubbleHeight);
+    context.stroke();
+
+    // Text
+    context.fillStyle = textColor;
+    drawPixelText(context, text, bubbleX + padding + 1, bubbleY + 2);
+
+    context.restore();
+}
+
+function drawTwoLineBubble(context, topText, bottomText) {
+    const bubbleX = 12;
+    const bubbleY = -16;
+    const padding = 2;
+    const charWidth = 4;
+    const lineHeight = 8;
+    const topWidth = topText.length * charWidth;
+    const bottomWidth = bottomText.length * charWidth;
+    const bubbleWidth = Math.max(topWidth, bottomWidth) + padding * 2 + 2;
+    const bubbleHeight = lineHeight * 2 + padding + 1;
+
+    context.save();
+
+    // Red bubble body
+    context.fillStyle = '#FFE0E0';
+    context.fillRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight);
+
+    // Border
+    context.strokeStyle = '#E74C3C';
+    context.lineWidth = 0.5;
+    context.strokeRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight);
+
+    // Tail
+    context.fillStyle = '#FFE0E0';
+    context.beginPath();
+    context.moveTo(bubbleX + 4, bubbleY + bubbleHeight);
+    context.lineTo(bubbleX + 6, bubbleY + bubbleHeight + 3);
+    context.lineTo(bubbleX + 8, bubbleY + bubbleHeight);
+    context.closePath();
+    context.fill();
+    context.strokeStyle = '#E74C3C';
+    context.beginPath();
+    context.moveTo(bubbleX + 4, bubbleY + bubbleHeight);
+    context.lineTo(bubbleX + 6, bubbleY + bubbleHeight + 3);
+    context.lineTo(bubbleX + 8, bubbleY + bubbleHeight);
+    context.stroke();
+
+    // Top line - penalty amount
+    context.fillStyle = '#CC0000';
+    drawPixelText(context, topText, bubbleX + padding + 1, bubbleY + 2);
+
+    // Bottom line - "No more!"
+    context.fillStyle = '#C0392B';
+    drawPixelText(context, bottomText, bubbleX + padding + 1, bubbleY + 2 + lineHeight);
+
+    context.restore();
+}
+
+
 // Pixel font for crisp speech bubble text at small scale
 const PIXEL_CHARS = {
     '$': [[1,0],[0,1],[1,1],[2,1],[1,2],[2,2],[1,3],[0,3],[1,4],[0,4],[1,5]],
@@ -529,6 +646,7 @@ const PIXEL_CHARS = {
     'x': [[0,1],[2,1],[1,2],[0,3],[2,3]],
     '3': [[0,0],[1,0],[2,0],[2,1],[0,2],[1,2],[2,2],[2,3],[0,4],[1,4],[2,4]],
     '4': [[0,0],[2,0],[0,1],[2,1],[0,2],[1,2],[2,2],[2,3],[2,4]],
+    '-': [[0,2],[1,2],[2,2]],
     // Additional characters for "disgruntled donor"
     'd': [[2,0],[2,1],[1,2],[2,2],[0,3],[2,3],[1,4],[2,4]],
     'i': [[1,0],[1,2],[1,3],[1,4]],
