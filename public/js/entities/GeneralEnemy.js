@@ -5,7 +5,7 @@ import PendulumMove from '../traits/PendulumMove.js';
 import Physics from '../traits/Physics.js';
 import Solid from '../traits/Solid.js';
 import Stomper from '../traits/Stomper.js';
-import Retention from '../traits/Retention.js';
+
 
 class Behavior extends Trait {
     collides(us, them) {
@@ -17,14 +17,10 @@ class Behavior extends Trait {
             if (them.vel.y > us.vel.y) {
                 us.traits.get(Killable).kill();
                 us.traits.get(PendulumMove).speed = 0;
-                if (them.traits.has(Retention)) {
-                    them.traits.get(Retention).restore(2);
-                }
+
             } else {
                 them.traits.get(Killable).kill();
-                if (them.traits.has(Retention)) {
-                    them.traits.get(Retention).hit(5);
-                }
+
             }
         }
     }
