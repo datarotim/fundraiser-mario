@@ -365,12 +365,18 @@ async function main(canvas) {
         const score = pt.score;
         const donors = pt.coins;
         const world = pt.world;
+        const lettersSent = pt.lettersSent;
+        const responseRate = lettersSent > 0
+            ? Math.round((donors / lettersSent) * 100)
+            : 0;
 
         // Animate score counter
         const scoreEl = document.getElementById('final-score');
         animateCounter(scoreEl, score);
 
         document.getElementById('final-donors').textContent = donors;
+        document.getElementById('final-letters').textContent = lettersSent;
+        document.getElementById('final-response-rate').textContent = responseRate + '%';
         document.getElementById('final-world').textContent = world;
         document.getElementById('gameover-msg').textContent =
             DATARO_MESSAGES[Math.floor(Math.random() * DATARO_MESSAGES.length)];
