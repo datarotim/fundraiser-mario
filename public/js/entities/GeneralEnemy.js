@@ -269,7 +269,7 @@ function drawPixels(context, palette, data) {
     }
 }
 
-function createEnemyFactory(speed, palette, walk1, walk2, dead) {
+function createEnemyFactory(speed, palette, walk1, walk2, dead, enemyType, labelText) {
     function drawEnemy(context) {
         const isDead = this.traits.get(Killable).dead;
         if (isDead) {
@@ -293,6 +293,8 @@ function createEnemyFactory(speed, palette, walk1, walk2, dead) {
         enemy.traits.get(PendulumMove).speed = speed;
 
         enemy.draw = drawEnemy;
+        enemy.enemyType = enemyType;
+        enemy.labelText = labelText;
 
         return enemy;
     };
@@ -300,24 +302,28 @@ function createEnemyFactory(speed, palette, walk1, walk2, dead) {
 
 export function loadSpreadzy() {
     return Promise.resolve(
-        createEnemyFactory(-30, spreadzyPalette, spreadzyWalk1, spreadzyWalk2, spreadzyDead)
+        createEnemyFactory(-30, spreadzyPalette, spreadzyWalk1, spreadzyWalk2, spreadzyDead,
+            'spreadzy', 'SPREADSHEET!')
     );
 }
 
 export function loadBouncer() {
     return Promise.resolve(
-        createEnemyFactory(-50, bouncerPalette, bouncerWalk1, bouncerWalk2, bouncerDead)
+        createEnemyFactory(-50, bouncerPalette, bouncerWalk1, bouncerWalk2, bouncerDead,
+            'bouncer', 'BOUNCED EMAIL!')
     );
 }
 
 export function loadDuper() {
     return Promise.resolve(
-        createEnemyFactory(-40, duperPalette, duperWalk1, duperWalk2, duperDead)
+        createEnemyFactory(-40, duperPalette, duperWalk1, duperWalk2, duperDead,
+            'duper', 'DUPE RECORD!')
     );
 }
 
 export function loadSnippy() {
     return Promise.resolve(
-        createEnemyFactory(-50, snippyPalette, snippyWalk1, snippyWalk2, snippyDead)
+        createEnemyFactory(-50, snippyPalette, snippyWalk1, snippyWalk2, snippyDead,
+            'snippy', 'BUDGET CUT!')
     );
 }

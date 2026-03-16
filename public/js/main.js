@@ -15,6 +15,7 @@ import {createTextLayer} from './layers/text.js';
 import {createDashboardLayer} from './layers/dashboard.js';
 import { createPlayerProgressLayer } from './layers/player-progress.js';
 import { createDataroRevealLayer } from './layers/dataro-reveal.js';
+import { createEnemyLabelLayer, resetEnemyLabels } from './layers/enemy-labels.js';
 import SceneRunner from './SceneRunner.js';
 import Scene from './Scene.js';
 import TimedScene from './TimedScene.js';
@@ -273,6 +274,7 @@ async function main(canvas) {
         loadFont(),
     ]);
 
+    resetEnemyLabels();
     const loadLevel = await createLevelLoader(entityFactory);
     const sceneRunner = new SceneRunner();
 
@@ -343,6 +345,9 @@ async function main(canvas) {
 
         const dashboardLayer = createDashboardLayer(font, mario);
         level.comp.layers.push(dashboardLayer);
+
+        const enemyLabelLayer = createEnemyLabelLayer(level.entities, font);
+        level.comp.layers.push(enemyLabelLayer);
 
         const revealLayer = createDataroRevealLayer(font);
         level.comp.layers.push(revealLayer);
