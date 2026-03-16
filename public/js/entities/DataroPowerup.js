@@ -19,6 +19,10 @@ export function isDataroRevealed() {
     return dataroActive;
 }
 
+export function deactivateDataro() {
+    dataroActive = false;
+}
+
 class Behavior extends Trait {
     collides(us, them) {
         if (us.traits.get(Killable).dead) {
