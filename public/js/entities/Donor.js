@@ -466,7 +466,7 @@ function createDonorDrawFunction(style) {
             drawMoneyBubble(context, behavior.penaltyText, true);
             // "No more!" on the left side
             if (behavior.speechBubbleText) {
-                drawLeftSpeechBubble(context, behavior.speechBubbleText);
+                drawUpperSpeechBubble(context, behavior.speechBubbleText);
             }
         } else if (behavior.speechBubbleText) {
             if (state === STATE_RESPONDING) {
@@ -582,42 +582,24 @@ function drawMoneyBubble(context, text, isNegative) {
     context.restore();
 }
 
-function drawLeftSpeechBubble(context, text) {
+function drawUpperSpeechBubble(context, text) {
+    const bubbleX = 12;
+    const bubbleY = -28;
     const padding = 2;
     const charWidth = 4;
     const textWidth = text.length * charWidth;
     const bubbleWidth = textWidth + padding * 2 + 2;
     const bubbleHeight = 10;
-    const bubbleX = -bubbleWidth + 4;
-    const bubbleY = -16;
 
     context.save();
 
-    // Bubble body
     context.fillStyle = '#FFE0E0';
     context.fillRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight);
 
-    // Border
     context.strokeStyle = '#E74C3C';
     context.lineWidth = 0.5;
     context.strokeRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight);
 
-    // Tail pointing down-right toward donor
-    context.fillStyle = '#FFE0E0';
-    context.beginPath();
-    context.moveTo(bubbleX + bubbleWidth - 8, bubbleY + bubbleHeight);
-    context.lineTo(bubbleX + bubbleWidth - 4, bubbleY + bubbleHeight + 3);
-    context.lineTo(bubbleX + bubbleWidth - 2, bubbleY + bubbleHeight);
-    context.closePath();
-    context.fill();
-    context.strokeStyle = '#E74C3C';
-    context.beginPath();
-    context.moveTo(bubbleX + bubbleWidth - 8, bubbleY + bubbleHeight);
-    context.lineTo(bubbleX + bubbleWidth - 4, bubbleY + bubbleHeight + 3);
-    context.lineTo(bubbleX + bubbleWidth - 2, bubbleY + bubbleHeight);
-    context.stroke();
-
-    // Text
     context.fillStyle = '#C0392B';
     drawPixelText(context, text, bubbleX + padding + 1, bubbleY + 2);
 
