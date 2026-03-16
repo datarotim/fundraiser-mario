@@ -462,15 +462,9 @@ function createDonorDrawFunction(style) {
 
         // Speech bubble (drawn at normal scale, above the character)
         if (behavior.penaltyText) {
-            // Penalty amount on the right (same spot as donations)
-            drawMoneyBubble(context, behavior.penaltyText, true);
-            // "No more!" on the left side
-            if (behavior.speechBubbleText) {
-                drawUpperSpeechBubble(context, behavior.speechBubbleText);
-            }
+            drawTwoLineBubble(context, behavior.penaltyText, 'No more!');
         } else if (behavior.speechBubbleText) {
             if (state === STATE_RESPONDING) {
-                // Donation amount - use same money bubble style
                 drawMoneyBubble(context, behavior.speechBubbleText, false);
             } else {
                 drawSpeechBubble(context, behavior.speechBubbleText, state);
@@ -582,26 +576,50 @@ function drawMoneyBubble(context, text, isNegative) {
     context.restore();
 }
 
-function drawUpperSpeechBubble(context, text) {
+function drawTwoLineBubble(context, topText, bottomText) {
     const bubbleX = 12;
-    const bubbleY = -28;
+    const bubbleY = -16;
     const padding = 2;
     const charWidth = 4;
-    const textWidth = text.length * charWidth;
-    const bubbleWidth = textWidth + padding * 2 + 2;
-    const bubbleHeight = 10;
+    const lineHeight = 8;
+    const topWidth = topText.length * charWidth;
+    const bottomWidth = bottomText.length * charWidth;
+    const bubbleWidth = Math.max(topWidth, bottomWidth) + padding * 2 + 2;
+    const bubbleHeight = lineHeight * 2 + padding + 1;
 
     context.save();
 
+    // Red bubble body
     context.fillStyle = '#FFE0E0';
     context.fillRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight);
 
+    // Border
     context.strokeStyle = '#E74C3C';
     context.lineWidth = 0.5;
     context.strokeRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight);
 
+    // Tail
+    context.fillStyle = '#FFE0E0';
+    context.beginPath();
+    context.moveTo(bubbleX + 4, bubbleY + bubbleHeight);
+    context.lineTo(bubbleX + 6, bubbleY + bubbleHeight + 3);
+    context.lineTo(bubbleX + 8, bubbleY + bubbleHeight);
+    context.closePath();
+    context.fill();
+    context.strokeStyle = '#E74C3C';
+    context.beginPath();
+    context.moveTo(bubbleX + 4, bubbleY + bubbleHeight);
+    context.lineTo(bubbleX + 6, bubbleY + bubbleHeight + 3);
+    context.lineTo(bubbleX + 8, bubbleY + bubbleHeight);
+    context.stroke();
+
+    // Top line - penalty amount
+    context.fillStyle = '#CC0000';
+    drawPixelText(context, topText, bubbleX + padding + 1, bubbleY + 2);
+
+    // Bottom line - "No more!"
     context.fillStyle = '#C0392B';
-    drawPixelText(context, text, bubbleX + padding + 1, bubbleY + 2);
+    drawPixelText(context, bottomText, bubbleX + padding + 1, bubbleY + 2 + lineHeight);
 
     context.restore();
 }
