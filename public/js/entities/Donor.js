@@ -34,6 +34,9 @@ class Behavior extends Trait {
         this.respondTimer = 0;
         this.walkSpeed = null;
         this.speechBubbleText = '';
+        this.penaltyText = '';
+        this.totalGiven = 0;
+        this.playerRef = null;
         this.fleeDirection = 1;
         this.fireTimer = 0;
         this.burstCount = 0;
@@ -113,9 +116,11 @@ class Behavior extends Trait {
 
         const amount = DONATION_AMOUNTS[Math.floor(Math.random() * DONATION_AMOUNTS.length)];
         this.speechBubbleText = '$' + amount + '!';
+        this.totalGiven += amount;
 
         if (them && them.owner && them.owner.traits.has(Player)) {
-            them.owner.traits.get(Player).score += amount;
+            this.playerRef = them.owner.traits.get(Player);
+            this.playerRef.score += amount;
         }
     }
 
@@ -125,6 +130,17 @@ class Behavior extends Trait {
         this.speechBubbleText = 'No more!';
         this.respondTimer = 0;
         this.fleeStarted = false;
+
+        // Deduct all donations this donor gave
+        if (this.totalGiven > 0) {
+            if (!this.playerRef && them && them.owner && them.owner.traits.has(Player)) {
+                this.playerRef = them.owner.traits.get(Player);
+            }
+            if (this.playerRef) {
+                this.playerRef.score = Math.max(0, this.playerRef.score - this.totalGiven);
+            }
+            this.penaltyText = '-$' + this.totalGiven;
+        }
 
         const fleeDir = them ? Math.sign(us.pos.x - them.pos.x) : 1;
         this.fleeDirection = fleeDir || 1;
@@ -203,6 +219,7 @@ class Behavior extends Trait {
 
             if (this.respondTimer > 2.0) {
                 this.speechBubbleText = '';
+                this.penaltyText = '';
             }
             if (this.respondTimer > 7) {
                 us.traits.get(Killable).kill();
@@ -443,6 +460,11 @@ function createDonorDrawFunction(style) {
 
         context.restore(); // restore flip + scale
 
+        // Penalty popup (drawn above speech bubble)
+        if (behavior.penaltyText) {
+            drawPenaltyPopup(context, behavior.penaltyText);
+        }
+
         // Speech bubble (drawn at normal scale, above the character)
         if (behavior.speechBubbleText) {
             drawSpeechBubble(context, behavior.speechBubbleText, state);
@@ -507,6 +529,34 @@ function drawSpeechBubble(context, text, state) {
 }
 
 
+function drawPenaltyPopup(context, text) {
+    const charWidth = 4;
+    const textWidth = text.length * charWidth;
+    const padding = 2;
+    const popupWidth = textWidth + padding * 2 + 2;
+    const popupHeight = 10;
+    const popupX = 12;
+    const popupY = -30;
+
+    context.save();
+
+    // Red background
+    context.fillStyle = '#FF4444';
+    context.fillRect(popupX, popupY, popupWidth, popupHeight);
+
+    // Border
+    context.strokeStyle = '#CC0000';
+    context.lineWidth = 0.5;
+    context.strokeRect(popupX, popupY, popupWidth, popupHeight);
+
+    // White text
+    context.fillStyle = '#FFFFFF';
+    drawPixelText(context, text, popupX + padding + 1, popupY + 2);
+
+    context.restore();
+}
+
+
 // Pixel font for crisp speech bubble text at small scale
 const PIXEL_CHARS = {
     '$': [[1,0],[0,1],[1,1],[2,1],[1,2],[2,2],[1,3],[0,3],[1,4],[0,4],[1,5]],
@@ -528,6 +578,7 @@ const PIXEL_CHARS = {
     'x': [[0,1],[2,1],[1,2],[0,3],[2,3]],
     '3': [[0,0],[1,0],[2,0],[2,1],[0,2],[1,2],[2,2],[2,3],[0,4],[1,4],[2,4]],
     '4': [[0,0],[2,0],[0,1],[2,1],[0,2],[1,2],[2,2],[2,3],[2,4]],
+    '-': [[0,2],[1,2],[2,2]],
     // Additional characters for "disgruntled donor"
     'd': [[2,0],[2,1],[1,2],[2,2],[0,3],[2,3],[1,4],[2,4]],
     'i': [[1,0],[1,2],[1,3],[1,4]],
