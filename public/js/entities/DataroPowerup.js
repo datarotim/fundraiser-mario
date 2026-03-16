@@ -25,8 +25,7 @@ class Behavior extends Trait {
             return;
         }
 
-        if (them.traits.has(Thrower) && !them.traits.get(Thrower).enabled) {
-            them.traits.get(Thrower).enabled = true;
+        if (them.traits.has(Thrower) && !them.powered) {
             us.traits.get(Killable).kill();
             them.sounds.add('coin');
 

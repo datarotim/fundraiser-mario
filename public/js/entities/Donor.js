@@ -125,14 +125,14 @@ class Behavior extends Trait {
         this.state = STATE_FLEEING;
         this.speechBubbleText = 'No more!';
         this.respondTimer = 0;
+        this.fleeStarted = false;
 
         const fleeDir = them ? Math.sign(us.pos.x - them.pos.x) : 1;
         this.fleeDirection = fleeDir || 1;
-        us.traits.get(PendulumMove).enabled = true;
-        us.traits.get(PendulumMove).speed = FLEE_SPEED * this.fleeDirection;
 
-        // Disable wall collision so fleeing donors run off-screen
-        us.traits.get(Solid).obstructs = false;
+        // Stop in place first so the player can read the speech bubble
+        us.traits.get(PendulumMove).enabled = false;
+        us.vel.x = 0;
     }
 
     startDisgruntled(us) {
@@ -193,10 +193,19 @@ class Behavior extends Trait {
 
         if (this.state === STATE_FLEEING) {
             this.respondTimer += deltaTime;
-            if (this.respondTimer > 0.8) {
+
+            // Stay in place for 1 second so the speech bubble can be read
+            if (!this.fleeStarted && this.respondTimer > 1.0) {
+                this.fleeStarted = true;
+                us.traits.get(PendulumMove).enabled = true;
+                us.traits.get(PendulumMove).speed = FLEE_SPEED * this.fleeDirection;
+                us.traits.get(Solid).obstructs = false;
+            }
+
+            if (this.respondTimer > 2.0) {
                 this.speechBubbleText = '';
             }
-            if (this.respondTimer > 6) {
+            if (this.respondTimer > 7) {
                 us.traits.get(Killable).kill();
             }
             // Recover from stagger
