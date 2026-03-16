@@ -11,6 +11,7 @@ import Thrower from '../traits/Thrower.js';
 
 import {loadAudioBoard} from '../loaders/audio.js';
 import {loadSpriteSheet} from '../loaders/sprite.js';
+import {deactivateDataro} from './DataroPowerup.js';
 
 const SLOW_DRAG = 1/1000;
 const FAST_DRAG = 1/5000;
@@ -113,6 +114,7 @@ function createMarioFactory(sprite, audio) {
             this.invincibleTimer = 2;
             this.pos.y += 16;
             this.size.set(14, 16);
+            deactivateDataro();
         };
 
         // When powered, absorb one hit by shrinking instead of dying
