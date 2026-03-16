@@ -418,33 +418,77 @@ async function main(canvas) {
 
     function watchForDeath(level) {
         deathHandled = false;
+        let pitDeathHandled = false;
 
         const originalUpdate = level.update.bind(level);
         level.update = function(gameContext) {
             originalUpdate(gameContext);
 
             const killable = mario.traits.get(Killable);
+
+            // Pit death: if Mario falls below the camera view, kill him
+            if (!killable.dead && !pitDeathHandled) {
+                const bottomOfScreen = level.camera.pos.y + level.camera.size.y;
+                if (mario.pos.y > bottomOfScreen) {
+                    pitDeathHandled = true;
+                    killable.kill();
+                    // Force the queued kill immediately
+                    mario.finalize();
+                }
+            }
+
             if (killable.dead && !deathHandled) {
                 deathHandled = true;
 
                 const playerTrait = mario.traits.get(Player);
                 playerTrait.lives -= 1;
 
+                // Freeze camera so screen doesn't scroll
+                level.freezeCamera = true;
+
+                // Stop music
+                level.music.pause();
+
+                // Disable solid collision so Mario falls through
+                mario.traits.get(Solid).obstructs = false;
+
+                // Override physics to only apply gravity to Mario (freeze X movement)
                 const physics = mario.traits.get(Physics);
                 const origPhysicsUpdate = physics.update.bind(physics);
                 physics.update = function(entity, gameContext, level) {
                     const {deltaTime} = gameContext;
-                    entity.pos.x += entity.vel.x * deltaTime;
                     entity.pos.y += entity.vel.y * deltaTime;
                     entity.vel.y += level.gravity * deltaTime;
                 };
-                mario.traits.get(Solid).obstructs = false;
 
-                mario.vel.set(0, -400);
+                if (pitDeathHandled) {
+                    // Pit death: Mario is already falling, just let him continue
+                    // No bounce - he's already below screen
+                    mario.vel.set(0, mario.vel.y);
+                } else {
+                    // Enemy kill: pause briefly, then bounce up and fall
+                    mario.vel.set(0, 0);
 
+                    // Freeze all other entities
+                    level.entities.forEach(entity => {
+                        if (entity !== mario) {
+                            entity.vel.set(0, 0);
+                            const entityUpdate = entity.update;
+                            entity.update = function() {};
+                        }
+                    });
+
+                    // Brief pause then bounce up (like classic Mario)
+                    setTimeout(() => {
+                        mario.vel.set(0, -400);
+                    }, 500);
+                }
+
+                // Wait for death animation to complete then restart/game over
                 setTimeout(async () => {
                     physics.update = origPhysicsUpdate;
                     mario.traits.get(Solid).obstructs = true;
+                    level.freezeCamera = false;
 
                     if (playerTrait.lives > 0) {
                         killable.revive();
@@ -454,7 +498,7 @@ async function main(canvas) {
                     } else {
                         showGameOver();
                     }
-                }, 3000);
+                }, pitDeathHandled ? 2000 : 3000);
             }
         };
     }

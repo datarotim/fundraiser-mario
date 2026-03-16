@@ -7,6 +7,9 @@ import { clamp } from './math.js';
 import { findPlayers } from './player.js';
 
 function focusPlayer(level) {
+    if (level.freezeCamera) {
+        return;
+    }
     for (const player of findPlayers(level.entities)) {
         level.camera.pos.x = clamp(
             player.pos.x - 100,
@@ -38,6 +41,7 @@ export default class Level extends Scene {
 
         this.gravity = 1500;
         this.totalTime = 0;
+        this.freezeCamera = false;
 
         this.camera = new Camera();
 
