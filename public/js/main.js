@@ -321,6 +321,20 @@ async function main(canvas) {
                     });
                     return;
                 }
+            } else if (spec.type === "final") {
+                for (const _ of findPlayers(touches)) {
+                    // Final level completed - show final victory then game over
+                    const playerTrait = mario.traits.get(Player);
+                    const victoryScene = new VictoryScene(font, playerTrait, {
+                        isFinal: true,
+                    });
+                    sceneRunner.addSceneManual(victoryScene);
+                    sceneRunner.runNext();
+                    victoryScene.events.listen(Scene.EVENT_COMPLETE, () => {
+                        showGameOver();
+                    });
+                    return;
+                }
             }
         });
 
