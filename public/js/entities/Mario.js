@@ -27,6 +27,7 @@ export function loadMario(audioContext) {
 
 function createMarioFactory(sprite, audio) {
     const runAnim = sprite.animations.get('run');
+    const runLargeAnim = sprite.animations.get('run-large');
     const climbAnim = sprite.animations.get('climb');
 
     function getHeading(mario) {
@@ -38,12 +39,15 @@ function createMarioFactory(sprite, audio) {
     }
 
     function routeFrame(mario) {
+        const large = mario.powered;
+
         const pipeTraveller = mario.traits.get(PipeTraveller);
         if (pipeTraveller.movement.x != 0) {
-            return runAnim(pipeTraveller.distance.x * 2);
+            const anim = large ? runLargeAnim : runAnim;
+            return anim(pipeTraveller.distance.x * 2);
         }
         if (pipeTraveller.movement.y != 0) {
-            return 'idle';
+            return large ? 'idle-large' : 'idle';
         }
 
         const poleTraveller = mario.traits.get(PoleTraveller);
@@ -52,19 +56,20 @@ function createMarioFactory(sprite, audio) {
         }
 
         if (mario.traits.get(Jump).falling) {
-            return 'jump';
+            return large ? 'jump-large' : 'jump';
         }
 
         const go = mario.traits.get(Go);
         if (go.distance > 0) {
             if ((mario.vel.x > 0 && go.dir < 0) || (mario.vel.x < 0 && go.dir > 0)) {
-                return 'break';
+                return large ? 'break-large' : 'break';
             }
 
-            return runAnim(mario.traits.get(Go).distance);
+            const anim = large ? runLargeAnim : runAnim;
+            return anim(mario.traits.get(Go).distance);
         }
 
-        return 'idle';
+        return large ? 'idle-large' : 'idle';
     }
 
     function setTurboState(turboOn) {
@@ -79,6 +84,7 @@ function createMarioFactory(sprite, audio) {
         const mario = new Entity();
         mario.audio = audio;
         mario.size.set(14, 16);
+        mario.powered = false;
 
         mario.addTrait(new Physics());
         mario.addTrait(new Solid());
@@ -93,6 +99,30 @@ function createMarioFactory(sprite, audio) {
 
         mario.traits.get(Killable).removeAfter = Infinity;
         mario.traits.get(Jump).velocity = 175;
+
+        mario.powerUp = function() {
+            this.powered = true;
+            this.size.set(14, 32);
+        };
+
+        mario.powerDown = function() {
+            this.powered = false;
+            this.pos.y += 16;
+            this.size.set(14, 16);
+            this.traits.get(Thrower).enabled = false;
+        };
+
+        // When powered, absorb one hit by shrinking instead of dying
+        const killable = mario.traits.get(Killable);
+        const originalKill = killable.kill.bind(killable);
+        killable.kill = function() {
+            if (mario.powered) {
+                mario.powerDown();
+                mario.sounds.add('stomp');
+            } else {
+                originalKill();
+            }
+        };
 
         mario.turbo = setTurboState;
         mario.draw = drawMario;

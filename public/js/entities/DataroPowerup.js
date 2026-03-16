@@ -30,6 +30,11 @@ class Behavior extends Trait {
             us.traits.get(Killable).kill();
             them.sounds.add('coin');
 
+            // Power up Mario (grow big)
+            if (them.powerUp) {
+                them.powerUp();
+            }
+
             // Trigger flash and reveal
             dataroCollectFlashTriggered = true;
             dataroCollectFlashStart = performance.now();
