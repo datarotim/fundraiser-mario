@@ -38,8 +38,16 @@ const playerData = {
    LEADERBOARD (server + localStorage fallback)
    ============================================ */
 
-// In-memory cache of today's leaderboard (populated from server)
-let _leaderboardCache = [];
+// In-memory cache of today's leaderboard (seeded from localStorage, updated from server)
+let _leaderboardCache = (() => {
+    try {
+        const data = JSON.parse(localStorage.getItem('dataro_leaderboard') || '[]');
+        const today = new Date().toDateString();
+        return data.filter(e => {
+            try { return new Date(e.time).toDateString() === today; } catch { return false; }
+        });
+    } catch { return []; }
+})();
 
 function getLeaderboard() {
     return _leaderboardCache;
@@ -75,6 +83,8 @@ function saveToLocalStorage(name, score, donors, world) {
 async function addToLeaderboard(name, score, donors, world) {
     // Always save locally as fallback
     saveToLocalStorage(name, score, donors, world);
+    // Update cache with local data immediately so render is instant
+    _leaderboardCache = getLeaderboardFromLocalStorage();
 
     // Post to server
     try {
@@ -418,7 +428,7 @@ async function main(canvas) {
     let worldsVisited = 0;
     let isDeathRestart = false;
 
-    async function showGameOver() {
+    function showGameOver() {
         const pt = mario.traits.get(Player);
         const score = pt.score;
         const donors = pt.coins;
@@ -439,12 +449,10 @@ async function main(canvas) {
         document.getElementById('gameover-msg').textContent =
             DATARO_MESSAGES[Math.floor(Math.random() * DATARO_MESSAGES.length)];
 
-        // Leaderboard (server + localStorage fallback)
         const name = playerData.name || 'Anonymous';
-        await addToLeaderboard(name, score, donors, world);
-        renderLeaderboard(name, score);
 
-        // Rank
+        // Show screen immediately with local data
+        renderLeaderboard(name, score);
         const rank = getPlayerRank(score);
         const rankEl = document.getElementById('player-rank');
         if (rankEl) rankEl.textContent = `#${rank}`;
@@ -454,6 +462,13 @@ async function main(canvas) {
         // Hide touch controls
         const touchCtrl = document.getElementById('touch-controls');
         if (touchCtrl) touchCtrl.classList.add('hidden');
+
+        // Submit to server in background, then re-render with server data
+        addToLeaderboard(name, score, donors, world).then(() => {
+            renderLeaderboard(name, score);
+            const serverRank = getPlayerRank(score);
+            if (rankEl) rankEl.textContent = `#${serverRank}`;
+        });
 
         // Store lead with score locally as backup
         try {

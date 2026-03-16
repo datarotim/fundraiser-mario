@@ -1,4 +1,4 @@
-import { put, list, getStore } from '@vercel/blob';
+import { put, list } from '@vercel/blob';
 
 const BLOB_KEY = 'leaderboard.json';
 
