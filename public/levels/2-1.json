@@ -691,7 +691,17 @@
         {
             "name": "donor-business",
             "pos": [2960, 192]
+        },
+        {
+            "name": "flag-pole",
+            "pos": [3200, 48]
         }
     ],
-    "triggers": []
+    "triggers": [
+        {
+            "type": "goto",
+            "name": "2-2",
+            "pos": [3264, 160]
+        }
+    ]
 }
