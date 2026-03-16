@@ -396,14 +396,28 @@ function drawPixelText(context, text, startX, startY) {
 function drawAskIndicator(context, remainingAsks) {
     // Position centered above the donor's head (in DRAW_OFFSET translated space)
     const indicatorY = -10;
-    const startX = 2;
+    const startX = 0;
     const text = 'x' + remainingAsks;
+    const color = remainingAsks <= 1 ? '#E74C3C' : '#FFD700';
 
     context.save();
 
-    // Just the text, no background box
-    context.fillStyle = remainingAsks <= 1 ? '#E74C3C' : '#FFD700';
-    drawPixelText(context, text, startX, indicatorY + 1);
+    // Mini envelope icon (7x5)
+    context.fillStyle = '#fff';
+    context.fillRect(startX, indicatorY + 1, 7, 5);
+    context.strokeStyle = '#aaa';
+    context.lineWidth = 0.5;
+    context.strokeRect(startX, indicatorY + 1, 7, 5);
+    // Envelope flap
+    context.beginPath();
+    context.moveTo(startX, indicatorY + 1);
+    context.lineTo(startX + 3.5, indicatorY + 3.5);
+    context.lineTo(startX + 7, indicatorY + 1);
+    context.stroke();
+
+    // "xN" text next to envelope
+    context.fillStyle = color;
+    drawPixelText(context, text, startX + 8, indicatorY + 1);
 
     context.restore();
 }
