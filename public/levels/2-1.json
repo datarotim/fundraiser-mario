@@ -613,10 +613,6 @@
             "pos": [528, 192]
         },
         {
-            "name": "donor-business",
-            "pos": [672, 192]
-        },
-        {
             "name": "donor-casual",
             "pos": [696, 192]
         },
@@ -635,10 +631,6 @@
         {
             "name": "donor-casual",
             "pos": [968, 192]
-        },
-        {
-            "name": "donor-formal",
-            "pos": [1056, 192]
         },
         {
             "name": "donor-business",
@@ -669,10 +661,6 @@
             "pos": [1416, 192]
         },
         {
-            "name": "donor-formal",
-            "pos": [1440, 192]
-        },
-        {
             "name": "spreadzy",
             "pos": [1600, 192]
         },
@@ -691,10 +679,6 @@
         {
             "name": "donor-business",
             "pos": [2192, 192]
-        },
-        {
-            "name": "donor-casual",
-            "pos": [2592, 192]
         },
         {
             "name": "donor-formal",
