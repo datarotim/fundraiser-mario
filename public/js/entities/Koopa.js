@@ -7,7 +7,7 @@ import Solid from '../traits/Solid.js';
 import Stomper from '../traits/Stomper.js';
 import Player from '../traits/Player.js';
 import {loadSpriteSheet} from '../loaders/sprite.js';
-import Retention from '../traits/Retention.js';
+
 import {assignDonorType, drawDonorIndicator} from '../DonorType.js';
 import {isDataroRevealed} from '../entities/DataroPowerup.js';
 
@@ -56,9 +56,7 @@ class Behavior extends Trait {
     handleNudge(us, them) {
         if (this.state === STATE_WALKING) {
             them.traits.get(Killable).kill();
-            if (them.traits.has(Retention)) {
-                them.traits.get(Retention).hit(5);
-            }
+
         } else if (this.state === STATE_HIDING) {
             this.panic(us, them);
         } else if (this.state === STATE_PANIC) {

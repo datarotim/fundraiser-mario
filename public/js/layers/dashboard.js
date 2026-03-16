@@ -1,6 +1,6 @@
 import Player from "../traits/Player.js";
 import LevelTimer from "../traits/LevelTimer.js";
-import Retention from "../traits/Retention.js";
+
 import {getDataroCollectFlashState} from "../entities/DataroPowerup.js";
 
 const DATARO_FLASH_DURATION_MS = 3000;
@@ -25,37 +25,6 @@ export function createDashboardLayer(font, entity) {
         font.print('TIME', context, 200, LINE1);
         font.print(timerTrait.currentTime.toFixed().toString().padStart(3, '0'), context, 208, LINE2);
 
-        // Retention health bar
-        const retention = entity.traits.get(Retention);
-        if (retention) {
-            const LINE3 = font.size * 4 + 2;
-            const barX = 16;
-            const barW = 72;
-            const barH = 4;
-            const pct = retention.rate / 100;
-
-            font.print('RETENTION', context, barX, LINE3);
-
-            const barY = LINE3 + font.size + 1;
-
-            // Bar background
-            context.fillStyle = '#333';
-            context.fillRect(barX, barY, barW, barH);
-
-            // Bar fill - color changes based on level
-            if (pct > 0.7) {
-                context.fillStyle = '#2A9D8F';  // Healthy teal
-            } else if (pct > 0.5) {
-                context.fillStyle = '#E9C46A';  // Warning gold
-            } else {
-                context.fillStyle = '#C1272D';  // Critical crimson
-            }
-            context.fillRect(barX, barY, barW * pct, barH);
-
-            // Percentage text
-            const pctText = Math.floor(retention.rate) + '!';
-            font.print(pctText, context, barX + barW + 4, LINE3 + font.size - 2);
-        }
 
         // Dataro AI flash when power-up is collected
         const flash = getDataroCollectFlashState();

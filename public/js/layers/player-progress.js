@@ -1,6 +1,6 @@
 import {findPlayers} from "../player.js";
 import Player from "../traits/Player.js";
-import Retention from "../traits/Retention.js";
+
 
 function getPlayer(entities) {
     for (const entity of findPlayers(entities)) {
@@ -46,12 +46,6 @@ export function createPlayerProgressLayer(font, level) {
         entity.draw(spriteBufferContext);
         context.drawImage(spriteBuffer, size * 13, size * 15);
 
-        // Show retention status
-        const retention = entity.traits.get(Retention);
-        if (retention) {
-            const retText = 'RETENTION ' + Math.floor(retention.rate) + '!';
-            const retX = Math.floor(context.canvas.width / 2) - Math.floor(retText.length * size / 2);
-            font.print(retText, context, retX, size * 19);
-        }
+
     };
 }
