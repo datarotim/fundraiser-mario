@@ -16,11 +16,11 @@ export function createDashboardLayer(font, entity) {
         font.print(playerTrait.name, context, 16, LINE1);
         font.print(playerTrait.score.toString().padStart(6, '0'), context, 16, LINE2);
 
-        font.print('DONORS', context, 88, LINE1);
-        font.print('×' + playerTrait.coins.toString().padStart(2, '0'), context, 96, LINE2);
+        font.print('SENT', context, 96, LINE1);
+        font.print('×' + playerTrait.lettersSent.toString().padStart(2, '0'), context, 96, LINE2);
 
-        font.print('QUARTER', context, 136, LINE1);
-        font.print(playerTrait.world, context, 152, LINE2);
+        font.print('QUARTER', context, 140, LINE1);
+        font.print(playerTrait.world, context, 156, LINE2);
 
         font.print('TIME', context, 200, LINE1);
         font.print(timerTrait.currentTime.toFixed().toString().padStart(3, '0'), context, 208, LINE2);

@@ -1,5 +1,6 @@
 import Trait from '../Trait.js';
 import Go from './Go.js';
+import Player from './Player.js';
 
 export default class Thrower extends Trait {
     constructor() {
@@ -39,6 +40,11 @@ export default class Thrower extends Trait {
 
             level.entities.add(letter);
             entity.sounds.add('stomp');
+
+            const playerTrait = entity.traits.get(Player);
+            if (playerTrait) {
+                playerTrait.lettersSent++;
+            }
         }
     }
 }
