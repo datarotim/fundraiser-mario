@@ -1,4 +1,4 @@
-const LABEL_DURATION = 3.0;
+const LABEL_DURATION = 1.0;
 const FADE_DURATION = 0.5;
 
 const introduced = new Map();
