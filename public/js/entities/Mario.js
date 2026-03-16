@@ -40,6 +40,10 @@ function createMarioFactory(sprite, audio) {
     }
 
     function routeFrame(mario) {
+        if (mario.traits.get(Killable).dead) {
+            return 'die';
+        }
+
         const large = mario.powered;
 
         const pipeTraveller = mario.traits.get(PipeTraveller);
