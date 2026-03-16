@@ -12,6 +12,7 @@ import {loadLetter} from './entities/Letter.js';
 import {loadFireball} from './entities/Fireball.js';
 import {loadDataroPowerup} from './entities/DataroPowerup.js';
 import {loadDonorBusiness, loadDonorCasual, loadDonorFormal} from './entities/Donor.js';
+import {loadSpreadzy, loadBouncer, loadDuper, loadSnippy} from './entities/GeneralEnemy.js';
 
 function createPool(size) {
     const pool = [];
@@ -87,6 +88,14 @@ export async function loadEntities(audioContext) {
             .then(addAs('donor-casual')),
         setup(loadDonorFormal)
             .then(addAs('donor-formal')),
+        setup(loadSpreadzy)
+            .then(addAs('spreadzy')),
+        setup(loadBouncer)
+            .then(addAs('bouncer')),
+        setup(loadDuper)
+            .then(addAs('duper')),
+        setup(loadSnippy)
+            .then(addAs('snippy')),
     ]);
 
     return entityFactories;

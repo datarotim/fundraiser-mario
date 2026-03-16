@@ -597,6 +597,10 @@
     ],
     "entities": [
         {
+            "name": "snippy",
+            "pos": [300, 192]
+        },
+        {
             "name": "donor-business",
             "pos": [384, 112]
         },
@@ -615,6 +619,10 @@
         {
             "name": "donor-casual",
             "pos": [696, 192]
+        },
+        {
+            "name": "bouncer",
+            "pos": [750, 192]
         },
         {
             "name": "donor-formal",
@@ -637,6 +645,14 @@
             "pos": [1088, 192]
         },
         {
+            "name": "duper",
+            "pos": [1200, 192]
+        },
+        {
+            "name": "duper",
+            "pos": [1224, 192]
+        },
+        {
             "name": "donor-casual",
             "pos": [1112, 192]
         },
@@ -655,6 +671,10 @@
         {
             "name": "donor-formal",
             "pos": [1440, 192]
+        },
+        {
+            "name": "spreadzy",
+            "pos": [1600, 192]
         },
         {
             "name": "donor-business",
@@ -679,6 +699,10 @@
         {
             "name": "donor-formal",
             "pos": [2616, 192]
+        },
+        {
+            "name": "snippy",
+            "pos": [2400, 192]
         },
         {
             "name": "donor-business",
