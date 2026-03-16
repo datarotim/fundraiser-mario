@@ -536,7 +536,7 @@ function drawPenaltyPopup(context, text) {
     const popupWidth = textWidth + padding * 2 + 2;
     const popupHeight = 10;
     const popupX = 12;
-    const popupY = -30;
+    const popupY = -44;
 
     context.save();
 
