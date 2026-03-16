@@ -35,13 +35,27 @@ const playerData = {
 };
 
 /* ============================================
-   LEADERBOARD (localStorage)
+   LEADERBOARD (server + localStorage fallback)
    ============================================ */
 
-function getLeaderboard() {
+// In-memory cache of today's leaderboard (seeded from localStorage, updated from server)
+let _leaderboardCache = (() => {
     try {
         const data = JSON.parse(localStorage.getItem('dataro_leaderboard') || '[]');
-        // Filter to today's scores only for conference freshness
+        const today = new Date().toDateString();
+        return data.filter(e => {
+            try { return new Date(e.time).toDateString() === today; } catch { return false; }
+        });
+    } catch { return []; }
+})();
+
+function getLeaderboard() {
+    return _leaderboardCache;
+}
+
+function getLeaderboardFromLocalStorage() {
+    try {
+        const data = JSON.parse(localStorage.getItem('dataro_leaderboard') || '[]');
         const today = new Date().toDateString();
         return data.filter(e => {
             try { return new Date(e.time).toDateString() === today; } catch { return false; }
@@ -51,7 +65,7 @@ function getLeaderboard() {
     }
 }
 
-function addToLeaderboard(name, score, donors, world) {
+function saveToLocalStorage(name, score, donors, world) {
     let allData;
     try {
         allData = JSON.parse(localStorage.getItem('dataro_leaderboard') || '[]');
@@ -64,14 +78,54 @@ function addToLeaderboard(name, score, donors, world) {
     try {
         localStorage.setItem('dataro_leaderboard', JSON.stringify(trimmed));
     } catch { /* storage full */ }
+}
 
-    // Return today's board
-    return getLeaderboard();
+async function addToLeaderboard(name, score, donors, world) {
+    // Always save locally as fallback
+    saveToLocalStorage(name, score, donors, world);
+    // Update cache with local data immediately so render is instant
+    _leaderboardCache = getLeaderboardFromLocalStorage();
+
+    // Post to server
+    try {
+        const resp = await fetch('/api/scores', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name,
+                score,
+                donors,
+                world,
+                email: playerData.email || '',
+                org: playerData.org || '',
+            }),
+        });
+        if (resp.ok) {
+            const data = await resp.json();
+            _leaderboardCache = data.leaderboard || [];
+            return _leaderboardCache;
+        }
+    } catch { /* network error, fall back to local */ }
+
+    _leaderboardCache = getLeaderboardFromLocalStorage();
+    return _leaderboardCache;
+}
+
+async function fetchLeaderboard() {
+    try {
+        const resp = await fetch('/api/scores');
+        if (resp.ok) {
+            const data = await resp.json();
+            _leaderboardCache = data.leaderboard || [];
+            return _leaderboardCache;
+        }
+    } catch { /* network error */ }
+    _leaderboardCache = getLeaderboardFromLocalStorage();
+    return _leaderboardCache;
 }
 
 function getPlayerRank(score) {
     const board = getLeaderboard();
-    // Board is sorted descending. Find first entry with score < ours.
     let rank = board.length + 1;
     for (let i = 0; i < board.length; i++) {
         if (board[i].score <= score) {
@@ -395,12 +449,10 @@ async function main(canvas) {
         document.getElementById('gameover-msg').textContent =
             DATARO_MESSAGES[Math.floor(Math.random() * DATARO_MESSAGES.length)];
 
-        // Leaderboard
         const name = playerData.name || 'Anonymous';
-        addToLeaderboard(name, score, donors, world);
-        renderLeaderboard(name, score);
 
-        // Rank
+        // Show screen immediately with local data
+        renderLeaderboard(name, score);
         const rank = getPlayerRank(score);
         const rankEl = document.getElementById('player-rank');
         if (rankEl) rankEl.textContent = `#${rank}`;
@@ -411,7 +463,14 @@ async function main(canvas) {
         const touchCtrl = document.getElementById('touch-controls');
         if (touchCtrl) touchCtrl.classList.add('hidden');
 
-        // Store lead with score for follow-up
+        // Submit to server in background, then re-render with server data
+        addToLeaderboard(name, score, donors, world).then(() => {
+            renderLeaderboard(name, score);
+            const serverRank = getPlayerRank(score);
+            if (rankEl) rankEl.textContent = `#${serverRank}`;
+        });
+
+        // Store lead with score locally as backup
         try {
             const leads = JSON.parse(localStorage.getItem('dataro_leads') || '[]');
             const existingIdx = leads.findIndex(l => l.email === playerData.email);
@@ -607,6 +666,9 @@ const canvas = document.getElementById('screen');
 initParticles();
 startTaglineRotation();
 
+// Pre-fetch server leaderboard
+fetchLeaderboard();
+
 // PHASE 1: Splash -> Signup
 document.getElementById('btn-play').addEventListener('click', () => {
     showScreen('signup-screen');
@@ -661,14 +723,6 @@ document.getElementById('signup-form').addEventListener('submit', (e) => {
         localStorage.setItem('dataro_leads', JSON.stringify(leads));
     } catch { /* localStorage not available */ }
 
-    showScreen('tutorial-screen');
-});
-
-// Skip signup (for testing / quick play)
-document.getElementById('btn-skip-signup').addEventListener('click', () => {
-    playerData.name = 'Player';
-    playerData.email = '';
-    playerData.org = '';
     showScreen('tutorial-screen');
 });
 
