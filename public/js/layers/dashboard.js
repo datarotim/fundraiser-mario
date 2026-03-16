@@ -14,10 +14,7 @@ export function createDashboardLayer(font, entity) {
         const timerTrait = entity.traits.get(LevelTimer);
 
         font.print(playerTrait.name, context, 16, LINE1);
-        font.print(playerTrait.score.toString().padStart(6, '0'), context, 16, LINE2);
-
-        font.print('DONORS', context, 88, LINE1);
-        font.print('×' + playerTrait.coins.toString().padStart(2, '0'), context, 96, LINE2);
+        font.print('$' + playerTrait.score.toString().padStart(6, '0'), context, 16, LINE2);
 
         font.print('QUARTER', context, 136, LINE1);
         font.print(playerTrait.world, context, 152, LINE2);

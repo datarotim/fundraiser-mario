@@ -18,7 +18,7 @@ const APPEAL_THRESHOLD = 3;
 const DISGRUNTLED_THRESHOLD = 5;
 const RESPOND_DURATION = 1.5;
 const FLEE_SPEED = 120;
-const DONATION_POINTS = 500;
+const DONATION_POINTS = 100;
 const CHASE_SPEED = 50;
 const FIRE_INTERVAL = 2.5;
 const BURST_SIZE = 3;
@@ -111,8 +111,7 @@ class Behavior extends Trait {
         this.respondTimer = 0;
         this.state = STATE_RESPONDING;
 
-        const responses = ['$25!', '$50!', '$100!', 'Sure!', 'OK!'];
-        this.speechBubbleText = responses[Math.floor(Math.random() * responses.length)];
+        this.speechBubbleText = '$100!';
 
         if (them && them.owner && them.owner.traits.has(Player)) {
             them.owner.traits.get(Player).addCoins(2);

@@ -64,12 +64,8 @@ export default class VictoryScene extends Scene {
         y += size * 3;
 
         // Stats
-        const scoreText = 'SCORE ' + this.player.score.toString().padStart(6, '0');
+        const scoreText = 'SCORE $' + this.player.score.toString().padStart(6, '0');
         this.font.print(scoreText, ctx, centerX(scoreText), y);
-        y += size * 2;
-
-        const donorText = 'DONORS ' + this.player.coins.toString();
-        this.font.print(donorText, ctx, centerX(donorText), y);
         y += size * 2;
 
         const livesText = 'LIVES ' + this.player.lives.toString();
