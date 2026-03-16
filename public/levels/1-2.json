@@ -437,8 +437,16 @@
             "pos": [272, 192]
         },
         {
+            "name": "bouncer",
+            "pos": [350, 192]
+        },
+        {
             "name": "donor-formal",
             "pos": [464, 192]
+        },
+        {
+            "name": "spreadzy",
+            "pos": [600, 192]
         },
         {
             "name": "donor-business",
@@ -447,6 +455,14 @@
         {
             "name": "donor-casual",
             "pos": [728, 192]
+        },
+        {
+            "name": "duper",
+            "pos": [880, 192]
+        },
+        {
+            "name": "duper",
+            "pos": [904, 192]
         },
         {
             "name": "donor-formal",
@@ -471,6 +487,10 @@
         {
             "name": "donor-casual",
             "pos": [1240, 128]
+        },
+        {
+            "name": "snippy",
+            "pos": [1400, 192]
         },
         {
             "name": "donor-formal",

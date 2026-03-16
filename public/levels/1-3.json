@@ -469,6 +469,13 @@
     ],
     "entities": [
         {
+            "name": "spreadzy",
+            "pos": [
+                500,
+                192
+            ]
+        },
+        {
             "name": "donor-business",
             "pos": [
                 704,
@@ -480,6 +487,13 @@
             "pos": [
                 736,
                 48
+            ]
+        },
+        {
+            "name": "bouncer",
+            "pos": [
+                1000,
+                192
             ]
         },
         {
