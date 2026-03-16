@@ -394,34 +394,40 @@ function drawPixelText(context, text, startX, startY) {
 
 function drawAskIndicator(context, remainingAsks) {
     // Position centered above the donor's head (in DRAW_OFFSET translated space)
-    const indicatorY = -8;
-    const startX = 1;
+    const indicatorY = -10;
+    const startX = 0;
     const text = 'x' + remainingAsks;
     const textWidth = text.length * 4;
-    const totalWidth = 7 + 1 + textWidth; // envelope + gap + text
+    const totalWidth = 7 + 2 + textWidth; // envelope + gap + text
 
     context.save();
 
-    // Dark background pill for visibility against any background
-    context.fillStyle = 'rgba(0, 0, 0, 0.55)';
-    context.fillRect(startX - 1, indicatorY - 2, totalWidth + 2, 8);
+    // Solid colored background pill for clear visibility
+    const bgColor = remainingAsks <= 1 ? '#C0392B' : '#2C3E50';
+    context.fillStyle = bgColor;
+    context.fillRect(startX - 1, indicatorY - 1, totalWidth + 3, 9);
+
+    // Bright border
+    context.strokeStyle = remainingAsks <= 1 ? '#E74C3C' : '#5D6D7E';
+    context.lineWidth = 1;
+    context.strokeRect(startX - 1, indicatorY - 1, totalWidth + 3, 9);
 
     // Draw mini envelope icon (7x5)
     context.fillStyle = '#fff';
-    context.fillRect(startX, indicatorY, 7, 5);
-    context.strokeStyle = '#aaa';
+    context.fillRect(startX + 1, indicatorY + 1, 7, 5);
+    context.strokeStyle = '#ccc';
     context.lineWidth = 0.5;
-    context.strokeRect(startX, indicatorY, 7, 5);
+    context.strokeRect(startX + 1, indicatorY + 1, 7, 5);
     // Envelope flap
     context.beginPath();
-    context.moveTo(startX, indicatorY);
-    context.lineTo(startX + 3.5, indicatorY + 2.5);
-    context.lineTo(startX + 7, indicatorY);
+    context.moveTo(startX + 1, indicatorY + 1);
+    context.lineTo(startX + 4.5, indicatorY + 3.5);
+    context.lineTo(startX + 8, indicatorY + 1);
     context.stroke();
 
     // Draw "xN" text next to envelope
-    context.fillStyle = '#fff';
-    drawPixelText(context, text, startX + 8, indicatorY - 1);
+    context.fillStyle = '#FFD700';
+    drawPixelText(context, text, startX + 9, indicatorY + 1);
 
     context.restore();
 }
