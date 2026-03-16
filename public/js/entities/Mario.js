@@ -110,14 +110,20 @@ function createMarioFactory(sprite, audio) {
         mario.powerDown = function() {
             if (!this.powered) return;
             this.powered = false;
+            this.invincibleTimer = 2;
             this.pos.y += 16;
             this.size.set(14, 16);
         };
 
         // When powered, absorb one hit by shrinking instead of dying
+        // Invincibility timer prevents immediate re-kill while still overlapping
+        mario.invincibleTimer = 0;
         const killable = mario.traits.get(Killable);
         const originalKill = killable.kill.bind(killable);
         killable.kill = function() {
+            if (mario.invincibleTimer > 0) {
+                return;
+            }
             if (mario.powered) {
                 mario.powerDown();
                 mario.sounds.add('stomp');
@@ -128,6 +134,15 @@ function createMarioFactory(sprite, audio) {
 
         mario.turbo = setTurboState;
         mario.draw = drawMario;
+
+        // Tick down invincibility timer each frame
+        const baseUpdate = mario.update.bind(mario);
+        mario.update = function(gameContext, level) {
+            if (mario.invincibleTimer > 0) {
+                mario.invincibleTimer -= gameContext.deltaTime;
+            }
+            baseUpdate(gameContext, level);
+        };
 
         mario.turbo(false);
 
