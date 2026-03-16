@@ -620,16 +620,6 @@ document.getElementById('player-email').addEventListener('input', () => {
     clearFieldError('player-email');
 });
 
-// DEV SHORTCUT: Jump straight to game
-document.getElementById('btn-jump-to-game').addEventListener('click', () => {
-    playerData.name = 'Player';
-    playerData.email = '';
-    playerData.org = '';
-    hideAllOverlays();
-    setupTouchControls();
-    main(canvas);
-});
-
 // PHASE 2: Signup -> Tutorial
 document.getElementById('signup-form').addEventListener('submit', (e) => {
     e.preventDefault();
