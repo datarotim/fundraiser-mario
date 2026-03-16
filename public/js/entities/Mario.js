@@ -101,11 +101,14 @@ function createMarioFactory(sprite, audio) {
         mario.traits.get(Jump).velocity = 175;
 
         mario.powerUp = function() {
+            if (this.powered) return;
             this.powered = true;
+            this.pos.y -= 16;
             this.size.set(14, 32);
         };
 
         mario.powerDown = function() {
+            if (!this.powered) return;
             this.powered = false;
             this.pos.y += 16;
             this.size.set(14, 16);

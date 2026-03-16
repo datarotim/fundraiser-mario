@@ -13,6 +13,12 @@ export function makePlayer(entity, name) {
 export function resetPlayer(entity, worldName) {
     entity.traits.get(LevelTimer).reset();
     entity.traits.get(Player).world = worldName;
+
+    // Reset power-up state
+    if (entity.powered) {
+        entity.powered = false;
+        entity.size.set(14, 16);
+    }
 }
 
 export function bootstrapPlayer(entity, level) {
