@@ -68,6 +68,17 @@ export default class VictoryScene extends Scene {
         this.font.print(scoreText, ctx, centerX(scoreText), y);
         y += size * 2;
 
+        const sentText = 'LETTERS SENT ' + this.player.lettersSent.toString();
+        this.font.print(sentText, ctx, centerX(sentText), y);
+        y += size * 2;
+
+        const responseRate = this.player.lettersSent > 0
+            ? Math.round((this.player.coins / this.player.lettersSent) * 100)
+            : 0;
+        const rateText = 'RESPONSE RATE ' + responseRate + '!';
+        this.font.print(rateText, ctx, centerX(rateText), y);
+        y += size * 2;
+
         const livesText = 'LIVES ' + this.player.lives.toString();
         this.font.print(livesText, ctx, centerX(livesText), y);
         y += size * 3;

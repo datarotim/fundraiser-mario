@@ -128,9 +128,9 @@ function drawFullReveal(context, font, t, w, h) {
         const ty = Math.floor(centerY) - font.size;
         font.print(text, context, tx, ty);
 
-        // "POWERED BY DATARO AI" fading in then out
+        // "YOU CAN NOW MAKE THE RIGHT NUMBER OF ASKS" fading in then out
         context.globalAlpha = pt < 0.5 ? pt * 2 : 2 - pt * 2;
-        const subText = 'POWERED BY DATARO AI';
+        const subText = 'YOU CAN NOW MAKE THE RIGHT NUMBER OF ASKS';
         const sx = Math.floor(centerX) - Math.floor(subText.length * font.size / 2);
         font.print(subText, context, sx, ty + font.size * 2);
     }
