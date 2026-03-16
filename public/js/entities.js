@@ -9,6 +9,7 @@ import {loadBrickShrapnel} from './entities/BrickShrapnel.js';
 import {loadPipePortal} from './entities/PipePortal.js';
 import {loadFlagPole} from './entities/FlagPole.js';
 import {loadLetter} from './entities/Letter.js';
+import {loadFireball} from './entities/Fireball.js';
 import {loadDataroPowerup} from './entities/DataroPowerup.js';
 import {loadDonorBusiness, loadDonorCasual, loadDonorFormal} from './entities/Donor.js';
 
@@ -76,6 +77,8 @@ export async function loadEntities(audioContext) {
             .then(addAs('brickShrapnel')),
         setup(loadLetter)
             .then(addAs('letter')),
+        setup(loadFireball)
+            .then(addAs('fireball')),
         setup(loadDataroPowerup)
             .then(addAs('dataro-powerup')),
         setup(loadDonorBusiness)

@@ -48,24 +48,37 @@ export function loadDataroPowerup() {
 }
 
 function createDataroPowerupFactory() {
+    // Pixel art "d" logo — 16x16 grid
+    // 0=transparent, 1=dark outline, 2=body, 3=highlight inner line
+    const palette = [null, '#3D1F6D', '#6B3FA0', '#9B6FD0'];
+    const pixelData = [
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,2,3,1,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,2,3,1,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,2,3,1,0,0,0,0],
+        [0,0,0,1,1,1,1,1,1,2,3,1,0,0,0,0],
+        [0,0,1,2,3,3,3,3,2,2,3,1,0,0,0,0],
+        [0,1,2,3,1,1,1,1,1,2,3,1,0,0,0,0],
+        [1,2,3,1,0,0,0,0,1,2,3,1,0,0,0,0],
+        [1,2,3,1,0,0,0,0,1,2,3,1,0,0,0,0],
+        [1,2,3,1,0,0,0,0,1,2,3,1,0,0,0,0],
+        [0,1,2,3,1,1,1,1,1,2,3,1,0,0,0,0],
+        [0,0,1,2,3,3,3,3,2,2,3,1,0,0,0,0],
+        [0,0,0,1,1,1,1,1,1,2,3,1,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,2,3,1,0,0,0,0],
+        [0,0,0,0,0,0,0,0,1,2,3,1,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    ];
+
     function drawDataroPowerup(context) {
-        // Purple orb body
-        context.fillStyle = '#6B3FA0';
-        context.beginPath();
-        context.arc(8, 8, 6, 0, Math.PI * 2);
-        context.fill();
-
-        // Highlight
-        context.fillStyle = '#9B6FD0';
-        context.beginPath();
-        context.arc(6, 6, 3, 0, Math.PI * 2);
-        context.fill();
-
-        // Small bright spot
-        context.fillStyle = '#C8A2E8';
-        context.beginPath();
-        context.arc(5, 5, 1, 0, Math.PI * 2);
-        context.fill();
+        for (let y = 0; y < 16; y++) {
+            for (let x = 0; x < 16; x++) {
+                const c = pixelData[y][x];
+                if (c === 0) continue;
+                context.fillStyle = palette[c];
+                context.fillRect(x, y, 1, 1);
+            }
+        }
     }
 
     return function createDataroPowerup() {

@@ -7,14 +7,23 @@ import Solid from '../traits/Solid.js';
 import Stomper from '../traits/Stomper.js';
 import Player from '../traits/Player.js';
 import {isDataroRevealed} from './DataroPowerup.js';
-
+import {findPlayers} from '../player.js';
 
 const STATE_WALKING = Symbol('walking');
 const STATE_RESPONDING = Symbol('responding');
 const STATE_FLEEING = Symbol('fleeing');
+const STATE_DISGRUNTLED = Symbol('disgruntled');
+
+const APPEAL_THRESHOLD = 3;
+const DISGRUNTLED_THRESHOLD = 5;
 const RESPOND_DURATION = 1.5;
 const FLEE_SPEED = 120;
 const DONATION_POINTS = 500;
+const CHASE_SPEED = 50;
+const FIRE_INTERVAL = 2.5;
+const BURST_SIZE = 3;
+const BURST_DELAY = 0.2;
+const FIREBALL_SPEED = 120;
 
 class Behavior extends Trait {
     constructor() {
@@ -26,6 +35,10 @@ class Behavior extends Trait {
         this.walkSpeed = null;
         this.speechBubbleText = '';
         this.fleeDirection = 1;
+        this.fireTimer = 0;
+        this.burstCount = 0;
+        this.burstTimer = 0;
+        this.staggerTimer = 0;
     }
 
     collides(us, them) {
@@ -34,6 +47,12 @@ class Behavior extends Trait {
         }
 
         if (them.traits.has(Stomper)) {
+            if (this.state === STATE_DISGRUNTLED) {
+                // Invincible - always kill the player
+                them.traits.get(Killable).kill();
+                return;
+            }
+
             if (them.vel.y > us.vel.y) {
                 us.traits.get(Killable).kill();
                 us.traits.get(PendulumMove).speed = 0;
@@ -51,7 +70,20 @@ class Behavior extends Trait {
             return;
         }
 
+        if (this.state === STATE_DISGRUNTLED) {
+            return;
+        }
+
         if (this.state === STATE_FLEEING) {
+            this.appealCount++;
+            if (this.appealCount >= DISGRUNTLED_THRESHOLD) {
+                this.startDisgruntled(us);
+            } else {
+                // Stagger: briefly stop so player can land more hits
+                us.vel.x = 0;
+                us.traits.get(PendulumMove).speed = 0;
+                this.staggerTimer = 0.6;
+            }
             return;
         }
 
@@ -103,7 +135,50 @@ class Behavior extends Trait {
         us.traits.get(Solid).obstructs = false;
     }
 
-    update(us, gameContext) {
+    startDisgruntled(us) {
+        this.state = STATE_DISGRUNTLED;
+        this.speechBubbleText = 'disgruntled donor';
+        this.respondTimer = 0;
+        this.fireTimer = 0;
+        this.burstCount = 0;
+        this.burstTimer = 0;
+
+        // Grow to 2x size - adjust position so they grow upward
+        us.pos.y -= 16;
+        us.size.set(32, 32);
+        us.drawOffset = {x: 0, y: -20};
+
+        // Stop pendulum, we handle movement manually
+        us.traits.get(PendulumMove).enabled = false;
+        us.traits.get(Solid).obstructs = false;
+    }
+
+    emitFireball(us, gameContext, level) {
+        if (!gameContext.entityFactory.fireball) {
+            return;
+        }
+
+        const fireball = gameContext.entityFactory.fireball();
+        fireball.pos.set(
+            us.pos.x + us.size.x / 2 - 4,
+            us.pos.y + us.size.y / 2 - 4
+        );
+
+        // Aim at player
+        for (const player of findPlayers(level.entities)) {
+            const dx = player.pos.x - fireball.pos.x;
+            const dy = player.pos.y - fireball.pos.y;
+            const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+            fireball.vel.set(
+                (dx / dist) * FIREBALL_SPEED,
+                (dy / dist) * FIREBALL_SPEED
+            );
+        }
+
+        level.entities.add(fireball);
+    }
+
+    update(us, gameContext, level) {
         const deltaTime = gameContext.deltaTime;
 
         if (this.state === STATE_RESPONDING) {
@@ -123,6 +198,43 @@ class Behavior extends Trait {
             }
             if (this.respondTimer > 6) {
                 us.traits.get(Killable).kill();
+            }
+            // Recover from stagger
+            if (this.staggerTimer > 0) {
+                this.staggerTimer -= deltaTime;
+                if (this.staggerTimer <= 0) {
+                    us.traits.get(PendulumMove).speed = FLEE_SPEED * this.fleeDirection;
+                }
+            }
+        }
+
+        if (this.state === STATE_DISGRUNTLED) {
+            this.respondTimer += deltaTime;
+
+            // Flash speech bubble for ~2.5 seconds
+            if (this.respondTimer > 2.5) {
+                this.speechBubbleText = '';
+            }
+
+            // Chase player
+            for (const player of findPlayers(level.entities)) {
+                const dir = Math.sign(player.pos.x - us.pos.x);
+                us.vel.x = dir * CHASE_SPEED;
+            }
+
+            // Fireball burst logic
+            this.fireTimer += deltaTime;
+            if (this.burstCount > 0) {
+                this.burstTimer += deltaTime;
+                if (this.burstTimer >= BURST_DELAY) {
+                    this.burstTimer = 0;
+                    this.burstCount--;
+                    this.emitFireball(us, gameContext, level);
+                }
+            } else if (this.fireTimer >= FIRE_INTERVAL) {
+                this.fireTimer = 0;
+                this.burstCount = BURST_SIZE;
+                this.burstTimer = BURST_DELAY; // Fire first one immediately
             }
         }
     }
@@ -165,6 +277,135 @@ const DONOR_STYLES = {
 };
 
 
+function drawDonorCharacter(context, colors, state, lifetime) {
+    // Walking animation - faster when fleeing or disgruntled
+    const isFleeing = state === STATE_FLEEING;
+    const isDisgruntled = state === STATE_DISGRUNTLED;
+    const walkSpeed = isFleeing ? 16 : isDisgruntled ? 12 : 8;
+    const walkCycle = Math.sin(lifetime * walkSpeed);
+    const isMoving = state === STATE_WALKING || isFleeing || isDisgruntled;
+    const legAmplitude = isFleeing ? 2.5 : isDisgruntled ? 2 : 1.5;
+    const legOffset = isMoving ? walkCycle * legAmplitude : 0;
+    const armSwing = isMoving ? walkCycle * 1 : 0;
+
+    // Shake effect for fleeing/disgruntled
+    const shakeX = isFleeing ? Math.sin(lifetime * 30) * 0.5
+        : isDisgruntled ? Math.sin(lifetime * 20) * 0.3 : 0;
+
+    context.translate(shakeX, 0);
+
+    // --- Draw bottom-up to prevent overlap issues ---
+
+    // Shoes
+    context.fillStyle = isDisgruntled ? '#330000' : colors.shoeColor;
+    context.fillRect(3 + legOffset, 14, 4, 2);
+    context.fillRect(9 - legOffset, 14, 4, 2);
+
+    // Pants / legs
+    context.fillStyle = isDisgruntled ? '#4A0000' : colors.pantsColor;
+    context.fillRect(4 + legOffset, 11, 3, 4);
+    context.fillRect(9 - legOffset, 11, 3, 4);
+
+    // Body / suit jacket
+    context.fillStyle = isDisgruntled ? '#8B0000' : colors.suitColor;
+    context.fillRect(3, 5, 10, 6);
+
+    // Shirt visible under jacket
+    context.fillStyle = isDisgruntled ? '#FF6347' : colors.shirtColor;
+    context.fillRect(6, 5, 4, 5);
+
+    // Tie
+    if (colors.tieColor && !isDisgruntled) {
+        context.fillStyle = colors.tieColor;
+        context.fillRect(7, 5, 2, 4);
+        context.beginPath();
+        context.moveTo(7, 9);
+        context.lineTo(9, 9);
+        context.lineTo(8, 10);
+        context.closePath();
+        context.fill();
+    }
+
+    // Arms
+    context.fillStyle = isDisgruntled ? '#8B0000' : colors.suitColor;
+    context.fillRect(1, 5 + armSwing, 2, 5);
+    context.fillRect(13, 5 - armSwing, 2, 5);
+
+    // Hands
+    context.fillStyle = isDisgruntled ? '#FF8C69' : colors.skinColor;
+    context.fillRect(1, 10 + armSwing, 2, 1);
+    context.fillRect(13, 10 - armSwing, 2, 1);
+
+    // Briefcase (not when fleeing or disgruntled)
+    if (colors.briefcase && !isFleeing && !isDisgruntled) {
+        context.fillStyle = '#8B4513';
+        context.fillRect(13, 9 - armSwing, 2, 3);
+        context.fillStyle = '#DAA520';
+        context.fillRect(13, 9 - armSwing, 1, 1);
+    }
+
+    // Head
+    context.fillStyle = isDisgruntled ? '#FF8C69' : colors.skinColor;
+    context.fillRect(4, 0, 8, 5);
+
+    // Hair
+    context.fillStyle = isDisgruntled ? '#1A0000' : colors.hairColor;
+    context.fillRect(4, 0, 8, 2);
+    context.fillRect(4, 0, 1, 3);
+
+    // Eyes
+    context.fillStyle = '#000';
+    if (isDisgruntled) {
+        // Angry eyes - red with angry eyebrows
+        context.fillStyle = '#FF0000';
+        context.fillRect(5, 2, 2, 2);
+        context.fillRect(9, 2, 2, 2);
+        context.fillStyle = '#000';
+        context.fillRect(6, 2, 1, 1);
+        context.fillRect(10, 2, 1, 1);
+        // Angry eyebrows (V shape)
+        context.fillRect(5, 1, 1, 1);
+        context.fillRect(6, 2, 1, 1);
+        context.fillRect(11, 1, 1, 1);
+        context.fillRect(10, 2, 1, 1);
+    } else if (isFleeing) {
+        // Wide scared eyes with white highlights
+        context.fillRect(5, 2, 2, 2);
+        context.fillRect(9, 2, 2, 2);
+        context.fillStyle = '#FFF';
+        context.fillRect(5, 2, 1, 1);
+        context.fillRect(9, 2, 1, 1);
+    } else if (state === STATE_RESPONDING) {
+        // Happy closed eyes (^_^)
+        context.fillRect(5, 3, 1, 1);
+        context.fillRect(6, 2, 1, 1);
+        context.fillRect(9, 2, 1, 1);
+        context.fillRect(10, 3, 1, 1);
+    } else {
+        // Normal dot eyes
+        context.fillRect(6, 2, 1, 2);
+        context.fillRect(10, 2, 1, 2);
+    }
+
+    // Mouth
+    if (isDisgruntled) {
+        // Angry gritted teeth
+        context.fillStyle = '#000';
+        context.fillRect(6, 4, 4, 1);
+        context.fillStyle = '#FFF';
+        context.fillRect(7, 4, 1, 1);
+        context.fillRect(9, 4, 1, 1);
+    } else if (isFleeing) {
+        context.fillStyle = '#000';
+        context.fillRect(7, 4, 2, 1);
+    } else if (state === STATE_RESPONDING) {
+        context.fillStyle = '#000';
+        context.fillRect(6, 4, 1, 1);
+        context.fillRect(9, 4, 1, 1);
+    }
+}
+
+
 function createDonorDrawFunction(style) {
     const colors = DONOR_STYLES[style] || DONOR_STYLES.business;
 
@@ -172,127 +413,29 @@ function createDonorDrawFunction(style) {
         const behavior = this.traits.get(Behavior);
         const state = behavior.state;
         const lifetime = this.lifetime;
+        const isDisgruntled = state === STATE_DISGRUNTLED;
 
-        // Offset all drawing down to leave room for speech bubble in buffer
         const DRAW_OFFSET = 20;
         context.save();
         context.translate(0, DRAW_OFFSET);
 
-        // Walking animation - faster when fleeing
-        const walkSpeed = state === STATE_FLEEING ? 16 : 8;
-        const walkCycle = Math.sin(lifetime * walkSpeed);
-        const isMoving = state === STATE_WALKING || state === STATE_FLEEING;
-        const legAmplitude = state === STATE_FLEEING ? 2.5 : 1.5;
-        const legOffset = isMoving ? walkCycle * legAmplitude : 0;
-        const armSwing = isMoving ? walkCycle * 1 : 0;
-
-        // Fleeing shake effect
-        const shakeX = state === STATE_FLEEING ? Math.sin(lifetime * 30) * 0.5 : 0;
-
+        // Character drawing with flip
         const flip = this.vel.x < 0;
         context.save();
+        if (isDisgruntled) {
+            // Scale 2x from top-left
+            context.scale(2, 2);
+        }
         if (flip) {
             context.scale(-1, 1);
             context.translate(-16, 0);
         }
-        context.translate(shakeX, 0);
 
-        // --- Draw bottom-up to prevent overlap issues ---
+        drawDonorCharacter(context, colors, state, lifetime);
 
-        // Shoes
-        context.fillStyle = colors.shoeColor;
-        context.fillRect(3 + legOffset, 14, 4, 2);
-        context.fillRect(9 - legOffset, 14, 4, 2);
+        context.restore(); // restore flip + scale
 
-        // Pants / legs
-        context.fillStyle = colors.pantsColor;
-        context.fillRect(4 + legOffset, 11, 3, 4);
-        context.fillRect(9 - legOffset, 11, 3, 4);
-
-        // Body / suit jacket
-        context.fillStyle = colors.suitColor;
-        context.fillRect(3, 5, 10, 6);
-
-        // Shirt visible under jacket
-        context.fillStyle = colors.shirtColor;
-        context.fillRect(6, 5, 4, 5);
-
-        // Tie
-        if (colors.tieColor) {
-            context.fillStyle = colors.tieColor;
-            context.fillRect(7, 5, 2, 4);
-            context.beginPath();
-            context.moveTo(7, 9);
-            context.lineTo(9, 9);
-            context.lineTo(8, 10);
-            context.closePath();
-            context.fill();
-        }
-
-        // Arms
-        context.fillStyle = colors.suitColor;
-        context.fillRect(1, 5 + armSwing, 2, 5);
-        context.fillRect(13, 5 - armSwing, 2, 5);
-
-        // Hands
-        context.fillStyle = colors.skinColor;
-        context.fillRect(1, 10 + armSwing, 2, 1);
-        context.fillRect(13, 10 - armSwing, 2, 1);
-
-        // Briefcase (if applicable, drawn near trailing hand)
-        if (colors.briefcase && state !== STATE_FLEEING) {
-            context.fillStyle = '#8B4513';
-            context.fillRect(13, 9 - armSwing, 2, 3);
-            context.fillStyle = '#DAA520';
-            context.fillRect(13, 9 - armSwing, 1, 1);
-        }
-
-        // Head
-        context.fillStyle = colors.skinColor;
-        context.fillRect(4, 0, 8, 5);
-
-        // Hair
-        context.fillStyle = colors.hairColor;
-        context.fillRect(4, 0, 8, 2);
-        // Side hair
-        context.fillRect(4, 0, 1, 3);
-
-        // Eyes
-        context.fillStyle = '#000';
-        if (state === STATE_FLEEING) {
-            // Wide scared eyes with white highlights
-            context.fillRect(5, 2, 2, 2);
-            context.fillRect(9, 2, 2, 2);
-            context.fillStyle = '#FFF';
-            context.fillRect(5, 2, 1, 1);
-            context.fillRect(9, 2, 1, 1);
-        } else if (state === STATE_RESPONDING) {
-            // Happy closed eyes (^_^) - upward arc
-            context.fillRect(5, 3, 1, 1);
-            context.fillRect(6, 2, 1, 1);
-            context.fillRect(9, 2, 1, 1);
-            context.fillRect(10, 3, 1, 1);
-        } else {
-            // Normal dot eyes
-            context.fillRect(6, 2, 1, 2);
-            context.fillRect(10, 2, 1, 2);
-        }
-
-        // Mouth
-        if (state === STATE_FLEEING) {
-            // Open mouth "O" shape
-            context.fillStyle = '#000';
-            context.fillRect(7, 4, 2, 1);
-        } else if (state === STATE_RESPONDING) {
-            // Wide smile - corner dots
-            context.fillStyle = '#000';
-            context.fillRect(6, 4, 1, 1);
-            context.fillRect(9, 4, 1, 1);
-        }
-
-        context.restore();
-
-        // Speech bubble (drawn after flip restore, but still within DRAW_OFFSET translate)
+        // Speech bubble (drawn at normal scale, above the character)
         if (behavior.speechBubbleText) {
             drawSpeechBubble(context, behavior.speechBubbleText, state);
         }
@@ -321,7 +464,7 @@ function drawSpeechBubble(context, text, state) {
     const bubbleHeight = 10;
 
     // Bubble background color
-    const isNegative = state === STATE_FLEEING;
+    const isNegative = state === STATE_FLEEING || state === STATE_DISGRUNTLED;
     context.fillStyle = isNegative ? '#FFE0E0' : '#E8F8E8';
 
     // Bubble body
@@ -377,6 +520,14 @@ const PIXEL_CHARS = {
     'x': [[0,1],[2,1],[1,2],[0,3],[2,3]],
     '3': [[0,0],[1,0],[2,0],[2,1],[0,2],[1,2],[2,2],[2,3],[0,4],[1,4],[2,4]],
     '4': [[0,0],[2,0],[0,1],[2,1],[0,2],[1,2],[2,2],[2,3],[2,4]],
+    // Additional characters for "disgruntled donor"
+    'd': [[2,0],[2,1],[1,2],[2,2],[0,3],[2,3],[1,4],[2,4]],
+    'i': [[1,0],[1,2],[1,3],[1,4]],
+    's': [[1,1],[2,1],[0,2],[1,3],[0,4],[1,4]],
+    'g': [[1,1],[2,1],[0,2],[2,2],[1,3],[2,3],[2,4],[0,5],[1,5]],
+    'n': [[0,1],[1,1],[2,1],[0,2],[2,2],[0,3],[2,3],[0,4],[2,4]],
+    't': [[1,0],[0,1],[1,1],[2,1],[1,2],[1,3],[1,4],[2,4]],
+    'l': [[1,0],[1,1],[1,2],[1,3],[1,4]],
 };
 
 function drawPixelText(context, text, startX, startY) {
