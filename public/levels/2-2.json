@@ -137,20 +137,12 @@
             "pos": [1184, 144]
         },
         {
-            "name": "cheep-fast",
-            "pos": [1616, 64]
-        },
-        {
             "name": "cheep-slow-wavy",
             "pos": [1248, 112]
         },
         {
             "name": "cheep-slow-wavy",
             "pos": [1552, 96]
-        },
-        {
-            "name": "cheep-slow-wavy",
-            "pos": [1872, 80]
         },
         {
             "name": "cheep-fast-wavy",
@@ -169,10 +161,6 @@
             "pos": [2320, 144]
         },
         {
-            "name": "cheep-fast",
-            "pos": [2400, 80]
-        },
-        {
             "name": "cheep-slow",
             "pos": [2624, 48]
         },
@@ -187,10 +175,6 @@
         {
             "name": "cheep-fast",
             "pos": [2928, 64]
-        },
-        {
-            "name": "cheep-fast-wavy",
-            "pos": [2976, 128]
         }
     ],
     "triggers": []
