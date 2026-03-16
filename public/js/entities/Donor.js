@@ -6,6 +6,7 @@ import Physics from '../traits/Physics.js';
 import Solid from '../traits/Solid.js';
 import Stomper from '../traits/Stomper.js';
 import Player from '../traits/Player.js';
+import {isDataroRevealed} from './DataroPowerup.js';
 
 
 const STATE_WALKING = Symbol('walking');
@@ -296,8 +297,8 @@ function createDonorDrawFunction(style) {
             drawSpeechBubble(context, behavior.speechBubbleText, state);
         }
 
-        // Ask limit indicator (always visible)
-        if (state !== STATE_FLEEING && !this.traits.get(Killable).dead && behavior.remainingAsks >= 0) {
+        // Ask limit indicator (visible after Dataro power-up)
+        if (isDataroRevealed() && state !== STATE_FLEEING && !this.traits.get(Killable).dead && behavior.remainingAsks >= 0) {
             drawAskIndicator(context, behavior.remainingAsks);
         }
 
