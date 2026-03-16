@@ -117,5 +117,11 @@
     ],
 
     "entities": [],
-    "triggers": []
+    "triggers": [
+        {
+            "type": "goto",
+            "name": "7-3",
+            "pos": [3008, 128]
+        }
+    ]
 }

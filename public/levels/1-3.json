@@ -502,7 +502,17 @@
                 1280,
                 64
             ]
+        },
+        {
+            "name": "flag-pole",
+            "pos": [2432, 48]
         }
     ],
-    "triggers": []
+    "triggers": [
+        {
+            "type": "goto",
+            "name": "1-4",
+            "pos": [2528, 128]
+        }
+    ]
 }

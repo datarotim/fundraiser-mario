@@ -547,6 +547,17 @@
             ]
         }
     ],
-    "entities": [],
-    "triggers": []
+    "entities": [
+        {
+            "name": "flag-pole",
+            "pos": [3600, 48]
+        }
+    ],
+    "triggers": [
+        {
+            "type": "goto",
+            "name": "1-1",
+            "pos": [3696, 128]
+        }
+    ]
 }
