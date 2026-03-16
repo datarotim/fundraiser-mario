@@ -460,13 +460,10 @@ function createDonorDrawFunction(style) {
 
         context.restore(); // restore flip + scale
 
-        // Penalty popup (drawn above speech bubble)
-        if (behavior.penaltyText) {
-            drawPenaltyPopup(context, behavior.penaltyText);
-        }
-
         // Speech bubble (drawn at normal scale, above the character)
-        if (behavior.speechBubbleText) {
+        if (behavior.penaltyText) {
+            drawPenaltyBubble(context, behavior.speechBubbleText, behavior.penaltyText);
+        } else if (behavior.speechBubbleText) {
             drawSpeechBubble(context, behavior.speechBubbleText, state);
         }
 
@@ -529,29 +526,57 @@ function drawSpeechBubble(context, text, state) {
 }
 
 
-function drawPenaltyPopup(context, text) {
-    const charWidth = 4;
-    const textWidth = text.length * charWidth;
+function drawPenaltyBubble(context, speechText, penaltyText) {
+    const bubbleX = 12;
     const padding = 2;
-    const popupWidth = textWidth + padding * 2 + 2;
-    const popupHeight = 10;
-    const popupX = 12;
-    const popupY = -44;
+    const charWidth = 4;
+    const lineHeight = 8;
+
+    // Size bubble to fit both lines
+    const line1Width = (speechText || '').length * charWidth;
+    const line2Width = penaltyText.length * charWidth;
+    const maxWidth = Math.max(line1Width, line2Width);
+    const bubbleWidth = maxWidth + padding * 2 + 2;
+    const bubbleHeight = speechText ? lineHeight + lineHeight + padding : lineHeight + padding;
+    const bubbleY = -16 - (speechText ? lineHeight : 0);
 
     context.save();
 
     // Red background
-    context.fillStyle = '#FF4444';
-    context.fillRect(popupX, popupY, popupWidth, popupHeight);
+    context.fillStyle = '#FFE0E0';
+    context.fillRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight);
 
-    // Border
-    context.strokeStyle = '#CC0000';
+    // Red border
+    context.strokeStyle = '#E74C3C';
     context.lineWidth = 0.5;
-    context.strokeRect(popupX, popupY, popupWidth, popupHeight);
+    context.strokeRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight);
 
-    // White text
-    context.fillStyle = '#FFFFFF';
-    drawPixelText(context, text, popupX + padding + 1, popupY + 2);
+    // Bubble tail
+    context.fillStyle = '#FFE0E0';
+    context.beginPath();
+    context.moveTo(bubbleX + 4, bubbleY + bubbleHeight);
+    context.lineTo(bubbleX + 6, bubbleY + bubbleHeight + 3);
+    context.lineTo(bubbleX + 8, bubbleY + bubbleHeight);
+    context.closePath();
+    context.fill();
+    context.strokeStyle = '#E74C3C';
+    context.beginPath();
+    context.moveTo(bubbleX + 4, bubbleY + bubbleHeight);
+    context.lineTo(bubbleX + 6, bubbleY + bubbleHeight + 3);
+    context.lineTo(bubbleX + 8, bubbleY + bubbleHeight);
+    context.stroke();
+
+    // Draw speech text line (e.g. "No more!")
+    let textY = bubbleY + 2;
+    if (speechText) {
+        context.fillStyle = '#C0392B';
+        drawPixelText(context, speechText, bubbleX + padding + 1, textY);
+        textY += lineHeight;
+    }
+
+    // Draw penalty text in bold red (e.g. "-$250")
+    context.fillStyle = '#CC0000';
+    drawPixelText(context, penaltyText, bubbleX + padding + 1, textY);
 
     context.restore();
 }
