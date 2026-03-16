@@ -4,7 +4,7 @@ import Go from './Go.js';
 export default class Thrower extends Trait {
     constructor() {
         super();
-        this.enabled = false;
+        this.enabled = true;
         this.cooldown = 0;
         this.COOLDOWN_TIME = 0.3;
         this._throwing = false;

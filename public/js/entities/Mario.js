@@ -112,7 +112,6 @@ function createMarioFactory(sprite, audio) {
             this.powered = false;
             this.pos.y += 16;
             this.size.set(14, 16);
-            this.traits.get(Thrower).enabled = false;
         };
 
         // When powered, absorb one hit by shrinking instead of dying
