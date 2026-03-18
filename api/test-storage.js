@@ -37,7 +37,9 @@ export default async function handler(req, res) {
         // 3. Test read
         const { blobs } = await list({ prefix: testKey });
         if (blobs.length > 0) {
-            const resp = await fetch(blobs[0].url);
+            const resp = await fetch(blobs[0].url, {
+                headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
+            });
             const readBack = await resp.json();
             results.readTest = readBack.test === true ? 'OK' : 'DATA_MISMATCH';
             // Clean up test blob
@@ -49,7 +51,9 @@ export default async function handler(req, res) {
         // 4. Check actual leaderboard
         const { blobs: lbBlobs } = await list({ prefix: 'leaderboard.json' });
         if (lbBlobs.length > 0) {
-            const resp = await fetch(lbBlobs[0].url);
+            const resp = await fetch(lbBlobs[0].url, {
+                headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
+            });
             const data = await resp.json();
             results.leaderboardEntries = data.length;
         } else {
