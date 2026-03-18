@@ -32,6 +32,7 @@ const playerData = {
     name: '',
     email: '',
     org: '',
+    wantsUpdates: false,
 };
 
 /* ============================================
@@ -100,6 +101,7 @@ async function addToLeaderboard(name, score, donors, world, lettersSent, respons
                 responseRate,
                 email: playerData.email || '',
                 org: playerData.org || '',
+                wantsUpdates: playerData.wantsUpdates || false,
             }),
         });
         if (resp.ok) {
@@ -711,6 +713,7 @@ document.getElementById('signup-form').addEventListener('submit', (e) => {
     playerData.name = fullName || 'Player';
     playerData.email = email;
     playerData.org = org;
+    playerData.wantsUpdates = document.getElementById('player-optin').checked;
 
     // Persist lead data
     try {
