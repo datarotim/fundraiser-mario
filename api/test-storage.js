@@ -30,6 +30,7 @@ export default async function handler(req, res) {
         await put(testKey, JSON.stringify(testData), {
             access: 'private',
             addRandomSuffix: false,
+            allowOverwrite: true,
             contentType: 'application/json',
         });
         results.writeTest = 'OK';

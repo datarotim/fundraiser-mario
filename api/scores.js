@@ -23,6 +23,7 @@ async function writeLeaderboard(data) {
     await put(BLOB_KEY, JSON.stringify(data), {
         access: 'private',
         addRandomSuffix: false,
+        allowOverwrite: true,
         contentType: 'application/json',
     });
 }
