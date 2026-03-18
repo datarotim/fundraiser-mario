@@ -95,7 +95,7 @@ export default class VictoryScene extends Scene {
         this.font.print(cta, ctx, centerX(cta), y);
         y += size * 2;
 
-        const url = 'DATARO.COM';
+        const url = 'DATARO.IO';
         this.font.print(url, ctx, centerX(url), y);
 
         // Prompt

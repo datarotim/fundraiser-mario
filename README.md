@@ -298,4 +298,4 @@ First activation: full 2.5s effect. Subsequent: abbreviated 1s version.
 
 - Engine: [Meth Meth Method — Code Super Mario in JS](https://www.youtube.com/playlist?list=PLS8HfBXv9ZWWe8zXrViYbIM2Hhylx8DZx)
 - Concept & gameplay design: Dataro
-- Powered by Dataro AI — [dataro.com](https://dataro.com)
+- Powered by Dataro AI — [dataro.io](https://dataro.io)
