@@ -107,9 +107,13 @@ async function addToLeaderboard(name, score, donors, world, lettersSent, respons
         if (resp.ok) {
             const data = await resp.json();
             _leaderboardCache = data.leaderboard || [];
+            console.log('[Leaderboard] Score saved to server successfully');
             return _leaderboardCache;
         }
-    } catch { /* network error, fall back to local */ }
+        console.warn('[Leaderboard] Server returned', resp.status, '- using localStorage fallback');
+    } catch (err) {
+        console.warn('[Leaderboard] Could not reach server, using localStorage fallback:', err.message);
+    }
 
     _leaderboardCache = getLeaderboardFromLocalStorage();
     return _leaderboardCache;

@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "PORT=5000 serve ./public",
+    "dev": "vercel dev --listen 5000",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
