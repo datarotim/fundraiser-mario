@@ -914,6 +914,15 @@ html, body {
     white-space: nowrap;
 }
 
+.lb-org {
+    flex: 1;
+    color: var(--gray);
+    font-size: 0.85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .lb-score {
     font-family: var(--font-display);
     font-weight: 700;

@@ -39,6 +39,9 @@ export default async function handler(req, res) {
 
     if (req.method === 'GET') {
         const allData = await readLeaderboard();
+        if (req.query.all === 'true') {
+            return res.status(200).json({ leaderboard: allData });
+        }
         const today = getTodayScores(allData);
         return res.status(200).json({ leaderboard: today });
     }
