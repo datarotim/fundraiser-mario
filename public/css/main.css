@@ -494,7 +494,7 @@ html, body {
     color: var(--error);
 }
 
-.form-group input {
+.form-group input:not([type="checkbox"]) {
     padding: 15px 18px;
     background: rgba(255, 255, 255, 0.06);
     border: 2px solid rgba(107, 63, 160, 0.25);
@@ -511,7 +511,7 @@ html, body {
     color: rgba(255, 255, 255, 0.2);
 }
 
-.form-group input:focus {
+.form-group input:not([type="checkbox"]):focus {
     border-color: var(--dataro-purple-light);
     background: rgba(107, 63, 160, 0.08);
     box-shadow: 0 0 20px var(--dataro-purple-glow);
