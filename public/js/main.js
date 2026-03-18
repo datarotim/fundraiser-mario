@@ -65,14 +65,14 @@ function getLeaderboardFromLocalStorage() {
     }
 }
 
-function saveToLocalStorage(name, score, donors, world) {
+function saveToLocalStorage(name, score, donors, world, lettersSent, responseRate) {
     let allData;
     try {
         allData = JSON.parse(localStorage.getItem('dataro_leaderboard') || '[]');
     } catch {
         allData = [];
     }
-    allData.push({ name, score, donors, world, time: Date.now() });
+    allData.push({ name, score, donors, world, lettersSent, responseRate, time: Date.now() });
     allData.sort((a, b) => b.score - a.score);
     const trimmed = allData.slice(0, 200);
     try {
@@ -80,9 +80,9 @@ function saveToLocalStorage(name, score, donors, world) {
     } catch { /* storage full */ }
 }
 
-async function addToLeaderboard(name, score, donors, world) {
+async function addToLeaderboard(name, score, donors, world, lettersSent, responseRate) {
     // Always save locally as fallback
-    saveToLocalStorage(name, score, donors, world);
+    saveToLocalStorage(name, score, donors, world, lettersSent, responseRate);
     // Update cache with local data immediately so render is instant
     _leaderboardCache = getLeaderboardFromLocalStorage();
 
@@ -96,6 +96,8 @@ async function addToLeaderboard(name, score, donors, world) {
                 score,
                 donors,
                 world,
+                lettersSent,
+                responseRate,
                 email: playerData.email || '',
                 org: playerData.org || '',
             }),
@@ -464,7 +466,7 @@ async function main(canvas) {
         if (touchCtrl) touchCtrl.classList.add('hidden');
 
         // Submit to server in background, then re-render with server data
-        addToLeaderboard(name, score, donors, world).then(() => {
+        addToLeaderboard(name, score, donors, world, lettersSent, responseRate).then(() => {
             renderLeaderboard(name, score);
             const serverRank = getPlayerRank(score);
             if (rankEl) rankEl.textContent = `#${serverRank}`;
