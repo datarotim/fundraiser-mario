@@ -9,7 +9,9 @@ async function readLeaderboard() {
             console.log('[Scores API] No existing leaderboard blob found, starting fresh');
             return [];
         }
-        const resp = await fetch(blobs[0].url);
+        const resp = await fetch(blobs[0].url, {
+            headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
+        });
         return await resp.json();
     } catch (err) {
         console.error('[Scores API] Failed to read leaderboard:', err.message);
@@ -21,6 +23,7 @@ async function writeLeaderboard(data) {
     await put(BLOB_KEY, JSON.stringify(data), {
         access: 'private',
         addRandomSuffix: false,
+        allowOverwrite: true,
         contentType: 'application/json',
     });
 }
