@@ -536,6 +536,10 @@ html, body {
     margin-top: 4px;
 }
 
+.signup-form .cta-button {
+    align-self: center;
+}
+
 .checkbox-label {
     display: flex;
     align-items: flex-start;
