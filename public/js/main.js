@@ -117,7 +117,7 @@ async function addToLeaderboard(name, score, donors, world, lettersSent, respons
 
 async function fetchLeaderboard() {
     try {
-        const resp = await fetch('/api/scores');
+        const resp = await fetch('/api/scores?all=true');
         if (resp.ok) {
             const data = await resp.json();
             _leaderboardCache = data.leaderboard || [];
@@ -145,22 +145,22 @@ function renderLeaderboard(currentPlayerName, currentScore) {
     if (!list) return;
 
     const board = getLeaderboard();
-    const top5 = board.slice(0, 5);
 
     list.innerHTML = '';
-    top5.forEach((entry, i) => {
+    board.forEach((entry, i) => {
         const isMe = entry.name === currentPlayerName && entry.score === currentScore;
         const div = document.createElement('div');
         div.className = `lb-entry${isMe ? ' highlight' : ''}`;
         div.innerHTML = `
             <span class="lb-rank">#${i + 1}</span>
             <span class="lb-name">${escapeHtml(truncate(entry.name, 20))}</span>
+            <span class="lb-org">${escapeHtml(truncate(entry.org || '', 20))}</span>
             <span class="lb-score">$${entry.score.toLocaleString()}</span>
         `;
         list.appendChild(div);
     });
 
-    if (top5.length === 0) {
+    if (board.length === 0) {
         list.innerHTML = '<div class="lb-entry"><span class="lb-name" style="text-align:center;width:100%;color:var(--gray)">Be the first on the board!</span></div>';
     }
 }
