@@ -28,7 +28,7 @@ export default async function handler(req, res) {
         const testKey = '_test-storage-probe.json';
         const testData = { test: true, time: Date.now() };
         await put(testKey, JSON.stringify(testData), {
-            access: 'public',
+            access: 'private',
             addRandomSuffix: false,
             contentType: 'application/json',
         });

@@ -19,7 +19,7 @@ async function readLeaderboard() {
 
 async function writeLeaderboard(data) {
     await put(BLOB_KEY, JSON.stringify(data), {
-        access: 'public',
+        access: 'private',
         addRandomSuffix: false,
         contentType: 'application/json',
     });
