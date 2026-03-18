@@ -5,10 +5,14 @@ const BLOB_KEY = 'leaderboard.json';
 async function readLeaderboard() {
     try {
         const { blobs } = await list({ prefix: BLOB_KEY });
-        if (blobs.length === 0) return [];
+        if (blobs.length === 0) {
+            console.log('[Scores API] No existing leaderboard blob found, starting fresh');
+            return [];
+        }
         const resp = await fetch(blobs[0].url);
         return await resp.json();
-    } catch {
+    } catch (err) {
+        console.error('[Scores API] Failed to read leaderboard:', err.message);
         return [];
     }
 }
@@ -69,7 +73,13 @@ export default async function handler(req, res) {
         allData.sort((a, b) => b.score - a.score);
         const trimmed = allData.slice(0, 500);
 
-        await writeLeaderboard(trimmed);
+        try {
+            await writeLeaderboard(trimmed);
+            console.log('[Scores API] Leaderboard saved with', trimmed.length, 'entries');
+        } catch (err) {
+            console.error('[Scores API] Failed to write leaderboard blob:', err.message);
+            return res.status(500).json({ error: 'Failed to save score to storage' });
+        }
 
         const today = getTodayScores(trimmed);
         return res.status(200).json({ leaderboard: today });
