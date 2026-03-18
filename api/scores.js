@@ -44,7 +44,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-        const { name, score, donors, world, email, org, lettersSent, responseRate } = req.body || {};
+        const { name, score, donors, world, email, org, lettersSent, responseRate, wantsUpdates } = req.body || {};
 
         if (typeof score !== 'number' || !name) {
             return res.status(400).json({ error: 'name and score are required' });
@@ -60,6 +60,7 @@ export default async function handler(req, res) {
             org: org || '',
             lettersSent: lettersSent || 0,
             responseRate: responseRate || 0,
+            wantsUpdates: wantsUpdates || false,
             time: Date.now(),
         });
         allData.sort((a, b) => b.score - a.score);
