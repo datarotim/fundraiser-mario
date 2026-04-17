@@ -23,6 +23,7 @@ import NarrativeScene from './NarrativeScene.js';
 import VictoryScene from './VictoryScene.js';
 import { connectEntity } from './traits/Pipe.js';
 import { OPENING_NARRATIVES, pickRandom, pickNextCard } from './narrative.js';
+import { startGamepad } from './Gamepad.js';
 
 /* ============================================
    PLAYER DATA & LEAD CAPTURE
@@ -272,10 +273,39 @@ function setupTouchControls() {
    SCREEN FLOW
    ============================================ */
 
+const FOCUSABLE_SELECTOR =
+    'button, a[href], input:not([type=hidden]):not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
+
+function getFocusable(root) {
+    if (!root) return [];
+    return [...root.querySelectorAll(FOCUSABLE_SELECTOR)]
+        .filter(el => !el.disabled && !el.hidden && el.offsetParent !== null);
+}
+
+function focusFirstInActiveOverlay() {
+    const overlay = document.querySelector('.overlay-screen.active');
+    if (!overlay) return;
+    const items = getFocusable(overlay);
+    if (items.length) items[0].focus();
+}
+
+function moveOverlayFocus(direction) {
+    const overlay = document.querySelector('.overlay-screen.active');
+    if (!overlay) return false;
+    const items = getFocusable(overlay);
+    if (!items.length) return false;
+    const current = document.activeElement;
+    const idx = items.indexOf(current);
+    const nextIdx = idx < 0 ? 0 : (idx + direction + items.length) % items.length;
+    items[nextIdx].focus();
+    return true;
+}
+
 function showScreen(id) {
     document.querySelectorAll('.overlay-screen').forEach(s => s.classList.remove('active'));
     const screen = document.getElementById(id);
     if (screen) screen.classList.add('active');
+    setTimeout(focusFirstInActiveOverlay, 50);
 }
 
 function hideAllOverlays() {
@@ -652,15 +682,15 @@ const canvas = document.getElementById('screen');
 initParticles();
 startTaglineRotation();
 
+// Start listening for USB gamepads (dispatches synthetic keyboard events)
+startGamepad();
+
 // Pre-fetch server leaderboard, then re-render splash top 5 with fresh data
 fetchLeaderboard().then(() => renderLeaderboard('', 0, 'splash-leaderboard-list', 5));
 
 // PHASE 1: Splash -> Signup
 document.getElementById('btn-play').addEventListener('click', () => {
     showScreen('signup-screen');
-    setTimeout(() => {
-        document.getElementById('player-name').focus();
-    }, 300);
 });
 
 // PHASE 2: Signup -> Tutorial
@@ -709,6 +739,16 @@ renderLeaderboard('', 0, 'splash-leaderboard-list', 5);
 // Prevent space bar from scrolling the page at any point
 document.addEventListener('keydown', (e) => {
     if (e.code === 'Space' && e.target === document.body) {
+        e.preventDefault();
+    }
+});
+
+// Arrow Up/Down on overlay screens moves focus through the tab order
+document.addEventListener('keydown', (e) => {
+    if (e.code !== 'ArrowUp' && e.code !== 'ArrowDown') return;
+    const activeOverlay = document.querySelector('.overlay-screen.active');
+    if (!activeOverlay) return;
+    if (moveOverlayFocus(e.code === 'ArrowDown' ? 1 : -1)) {
         e.preventDefault();
     }
 });
