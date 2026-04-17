@@ -99,9 +99,6 @@ async function addToLeaderboard(name, score, donors, world, lettersSent, respons
                 world,
                 lettersSent,
                 responseRate,
-                email: playerData.email || '',
-                org: playerData.org || '',
-                wantsUpdates: playerData.wantsUpdates || false,
             }),
         });
         if (resp.ok) {
@@ -158,7 +155,6 @@ function renderLeaderboard(currentPlayerName, currentScore) {
         div.innerHTML = `
             <span class="lb-rank">#${i + 1}</span>
             <span class="lb-name">${escapeHtml(truncate(entry.name, 20))}</span>
-            <span class="lb-org">${escapeHtml(truncate(entry.org || '', 20))}</span>
             <span class="lb-score">$${entry.score.toLocaleString()}</span>
         `;
         list.appendChild(div);
@@ -283,24 +279,6 @@ function showScreen(id) {
 
 function hideAllOverlays() {
     document.querySelectorAll('.overlay-screen').forEach(s => s.classList.remove('active'));
-}
-
-/* ============================================
-   FORM VALIDATION
-   ============================================ */
-
-function validateEmail(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function showFieldError(inputId, errorId) {
-    const group = document.getElementById(inputId)?.closest('.form-group');
-    if (group) group.classList.add('has-error');
-}
-
-function clearFieldError(inputId) {
-    const group = document.getElementById(inputId)?.closest('.form-group');
-    if (group) group.classList.remove('has-error');
 }
 
 /* ============================================
@@ -481,7 +459,7 @@ async function main(canvas) {
         // Store lead with score locally as backup
         try {
             const leads = JSON.parse(localStorage.getItem('dataro_leads') || '[]');
-            const existingIdx = leads.findIndex(l => l.email === playerData.email);
+            const existingIdx = leads.findIndex(l => l.name === playerData.name);
             if (existingIdx >= 0) {
                 leads[existingIdx].lastScore = score;
                 leads[existingIdx].lastPlayed = new Date().toISOString();
@@ -685,47 +663,23 @@ document.getElementById('btn-play').addEventListener('click', () => {
     }, 300);
 });
 
-// Clear field errors on input
-document.getElementById('player-email').addEventListener('input', () => {
-    clearFieldError('player-email');
-});
-
 // PHASE 2: Signup -> Tutorial
 document.getElementById('signup-form').addEventListener('submit', (e) => {
     e.preventDefault();
 
     const name = document.getElementById('player-name').value.trim();
-    const lastName = document.getElementById('player-lastname')?.value.trim() || '';
-    const email = document.getElementById('player-email').value.trim();
-    const org = document.getElementById('player-org').value.trim();
 
-    // Validate name
     if (!name) {
         document.getElementById('player-name').focus();
         return;
     }
 
-    // Validate email
-    if (!validateEmail(email)) {
-        showFieldError('player-email', 'email-error');
-        document.getElementById('player-email').focus();
-        return;
-    }
+    playerData.name = name;
 
-    const fullName = lastName ? `${name} ${lastName}` : name;
-
-    playerData.name = fullName || 'Player';
-    playerData.email = email;
-    playerData.org = org;
-    playerData.wantsUpdates = document.getElementById('player-optin').checked;
-
-    // Persist lead data
     try {
         const leads = JSON.parse(localStorage.getItem('dataro_leads') || '[]');
         leads.push({
-            name: fullName,
-            email,
-            org,
+            name,
             timestamp: new Date().toISOString(),
             plays: 1,
         });
@@ -785,13 +739,6 @@ try {
     const leads = JSON.parse(localStorage.getItem('dataro_leads') || '[]');
     if (leads.length > 0) {
         const last = leads[leads.length - 1];
-        const nameParts = (last.name || '').split(' ');
-        if (nameParts[0]) document.getElementById('player-name').value = nameParts[0];
-        if (nameParts[1]) {
-            const lastNameEl = document.getElementById('player-lastname');
-            if (lastNameEl) lastNameEl.value = nameParts.slice(1).join(' ');
-        }
-        if (last.email) document.getElementById('player-email').value = last.email;
-        if (last.org) document.getElementById('player-org').value = last.org;
+        if (last.name) document.getElementById('player-name').value = last.name;
     }
 } catch { /* ok */ }
