@@ -68,6 +68,13 @@ html, body {
     max-width: 133.3vh;
 }
 
+/* Visible focus ring for keyboard / gamepad navigation */
+.overlay-screen :focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 4px;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+}
+
 /* ============================================
    OVERLAY SCREENS
    ============================================ */
@@ -603,13 +610,36 @@ html, body {
     font-weight: 500;
 }
 
+.tutorial-controls-group {
+    margin-bottom: 24px;
+}
+
+.tutorial-controls-group:last-of-type {
+    margin-bottom: 36px;
+}
+
+.controls-heading {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--dataro-purple-light);
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 14px;
+}
+
 .tutorial-controls {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 24px;
-    margin-bottom: 40px;
+    gap: 20px;
     flex-wrap: wrap;
+}
+
+.btn-y, .btn-b {
+    background: var(--dataro-purple-light);
+    color: var(--darker);
 }
 
 .control-divider {
