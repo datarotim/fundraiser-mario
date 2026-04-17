@@ -141,11 +141,12 @@ function getPlayerRank(score) {
     return rank;
 }
 
-function renderLeaderboard(currentPlayerName, currentScore) {
-    const list = document.getElementById('leaderboard-list');
+function renderLeaderboard(currentPlayerName, currentScore, listId = 'leaderboard-list', limit = 0) {
+    const list = document.getElementById(listId);
     if (!list) return;
 
-    const board = getLeaderboard();
+    const fullBoard = getLeaderboard();
+    const board = limit > 0 ? fullBoard.slice(0, limit) : fullBoard;
 
     list.innerHTML = '';
     board.forEach((entry, i) => {
@@ -652,8 +653,8 @@ const canvas = document.getElementById('screen');
 initParticles();
 startTaglineRotation();
 
-// Pre-fetch server leaderboard
-fetchLeaderboard();
+// Pre-fetch server leaderboard, then re-render splash top 5 with fresh data
+fetchLeaderboard().then(() => renderLeaderboard('', 0, 'splash-leaderboard-list', 5));
 
 // PHASE 1: Splash -> Signup
 document.getElementById('btn-play').addEventListener('click', () => {
@@ -702,8 +703,9 @@ document.getElementById('btn-retry').addEventListener('click', () => {
     window.location.reload();
 });
 
-// Pre-render leaderboard
+// Pre-render leaderboards (splash top 5 + full game-over list) from cached local data
 renderLeaderboard('', 0);
+renderLeaderboard('', 0, 'splash-leaderboard-list', 5);
 
 // Prevent space bar from scrolling the page at any point
 document.addEventListener('keydown', (e) => {

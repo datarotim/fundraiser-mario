@@ -188,41 +188,27 @@ html, body {
 .dataro-badge {
     display: inline-flex;
     align-items: center;
-    gap: 12px;
+    justify-content: center;
+    padding: 10px 22px;
+    background: #fff;
+    border-radius: 999px;
+    box-shadow: 0 4px 20px var(--dataro-purple-glow);
     margin-bottom: 20px;
 }
 
-.dataro-badge .badge-icon {
-    width: 52px; height: 52px;
-    background: var(--dataro-gradient);
-    border-radius: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-display);
-    font-size: 1.6rem;
-    font-weight: 900;
-    color: white;
-    box-shadow: 0 4px 24px var(--dataro-purple-glow);
+.dataro-badge.small {
+    padding: 6px 14px;
+    box-shadow: 0 2px 10px rgba(107, 63, 160, 0.18);
 }
 
-.dataro-badge span {
-    font-family: var(--font-display);
-    font-size: 1.9rem;
-    font-weight: 800;
-    letter-spacing: 8px;
-    color: var(--white);
+.dataro-logo-img {
+    display: block;
+    height: 28px;
+    width: auto;
 }
 
-.dataro-badge.small .badge-icon {
-    width: 36px; height: 36px;
-    font-size: 1.1rem;
-    border-radius: var(--radius-sm);
-}
-
-.dataro-badge.small span {
-    font-size: 1.3rem;
-    letter-spacing: 5px;
+.dataro-badge.small .dataro-logo-img {
+    height: 18px;
 }
 
 /* ============================================
@@ -340,12 +326,19 @@ html, body {
     transition: opacity 0.4s ease;
 }
 
-.splash-features {
-    display: flex;
-    gap: 14px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-bottom: 44px;
+.splash-leaderboard {
+    max-width: 360px;
+    margin: 0 auto 28px;
+    width: 100%;
+}
+
+.splash-leaderboard .leaderboard-title {
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.splash-leaderboard .leaderboard-list {
+    max-height: none;
 }
 
 .feature-pill {
