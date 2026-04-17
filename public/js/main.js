@@ -594,10 +594,6 @@ async function main(canvas) {
         isDeathRestart = false;
 
         const level = await setupLevel(name);
-        currentLevel = level;
-        // Apply the current viewport-derived size to the freshly-built camera
-        level.camera.size.x = canvas.width;
-        level.camera.size.y = BASE_HEIGHT - HUD_HEIGHT;
         resetPlayer(mario, name);
 
         const playerProgressLayer = createPlayerProgressLayer(font, level);
@@ -651,29 +647,6 @@ async function main(canvas) {
    ============================================ */
 
 const canvas = document.getElementById('screen');
-
-// Dynamic canvas resolution — match viewport aspect so more of the level
-// is visible on wider screens without stretching pixels.
-const BASE_HEIGHT = 240;
-const MIN_ASPECT = 4 / 3;
-const MAX_ASPECT = 21 / 9;
-const HUD_HEIGHT = 16;
-let currentLevel = null;
-
-function updateCanvasResolution() {
-    const viewportAspect = window.innerWidth / window.innerHeight;
-    const aspect = Math.max(MIN_ASPECT, Math.min(MAX_ASPECT, viewportAspect));
-    const width = Math.round((BASE_HEIGHT * aspect) / 16) * 16;
-    canvas.width = width;
-    canvas.height = BASE_HEIGHT;
-    if (currentLevel && currentLevel.camera) {
-        currentLevel.camera.size.x = width;
-        currentLevel.camera.size.y = BASE_HEIGHT - HUD_HEIGHT;
-    }
-}
-
-updateCanvasResolution();
-window.addEventListener('resize', updateCanvasResolution);
 
 // Init splash effects
 initParticles();

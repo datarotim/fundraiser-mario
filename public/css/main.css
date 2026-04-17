@@ -53,14 +53,19 @@ html, body {
 #screen {
     display: block;
     image-rendering: pixelated;
-    position: fixed;
-    top: 0;
-    left: 0;
+    margin: auto;
     width: 100vw;
-    height: 100vh;
-    object-fit: contain;
-    background: #000;
+    max-height: 100vh;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     z-index: 1;
+}
+
+.aspect-4-3 {
+    height: 75vw;
+    max-width: 133.3vh;
 }
 
 /* ============================================
