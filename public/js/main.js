@@ -633,7 +633,6 @@ async function main(canvas) {
     const openingLines = pickRandom(OPENING_NARRATIVES);
     const narrativeScene = new NarrativeScene(font, openingLines, {
         title: 'THE FUNDRAISER',
-        scrollSpeed: 16,
     });
     sceneRunner.addSceneManual(narrativeScene);
     sceneRunner.runNext();
