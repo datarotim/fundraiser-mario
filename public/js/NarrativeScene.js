@@ -56,7 +56,7 @@ export default class NarrativeScene extends Scene {
 
         if (this.phase === 'waiting') {
             this.holdTime += gameContext.deltaTime;
-            if (this.holdTime > 6 && !this._dismissed) {
+            if (this.holdTime > 15 && !this._dismissed) {
                 this._dismissed = true;
                 this.events.emit(Scene.EVENT_COMPLETE);
             }
