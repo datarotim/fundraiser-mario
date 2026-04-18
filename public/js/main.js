@@ -725,14 +725,21 @@ const canvas = document.getElementById('screen');
    ============================================ */
 
 const ADMIN_DEFAULTS = {
+    mode: 'event',
     fields: { firstName: true, lastName: false, org: false, email: false },
     aspectRatio: '16-9',
+};
+
+const UTM_BY_MODE = {
+    event:   'https://dataro.io/?utm_source=super_datario&utm_medium=offline&utm_campaign=event-super-datario-global-2026&utm_content=game_cta',
+    digital: 'https://dataro.io/?utm_source=super_datario&utm_medium=referral&utm_campaign=event-super-datario-global-2026&utm_content=game_cta',
 };
 
 function readCachedAdminConfig() {
     try {
         const raw = JSON.parse(localStorage.getItem('dataro_admin_config') || '{}');
         return {
+            mode: raw.mode === 'digital' ? 'digital' : 'event',
             fields: { ...ADMIN_DEFAULTS.fields, ...(raw.fields || {}) },
             aspectRatio: raw.aspectRatio === '4-3' ? '4-3' : '16-9',
         };
@@ -763,6 +770,13 @@ function applyAdminConfig(cfg) {
     const emailEl = document.getElementById('player-email');
     if (nameEl)  nameEl.required  = !!cfg.fields.firstName;
     if (emailEl) emailEl.required = !!cfg.fields.email;
+
+    // Mode-driven behaviour
+    const mode = cfg.mode === 'digital' ? 'digital' : 'event';
+    const dataroBtn = document.getElementById('btn-dataro');
+    if (dataroBtn) dataroBtn.href = UTM_BY_MODE[mode];
+    const prizePill = document.querySelector('.conf-badge');
+    if (prizePill) prizePill.style.display = mode === 'digital' ? 'none' : '';
 }
 
 applyAdminConfig(__ADMIN);
