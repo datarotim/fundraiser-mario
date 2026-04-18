@@ -40,13 +40,23 @@ const playerData = {
    LEADERBOARD (server + localStorage fallback)
    ============================================ */
 
+// Anchor "today" to Los Angeles time so the booth day is consistent
+// regardless of server/client timezone. Handles DST automatically.
+const PST_DATE_FMT = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+});
+function dateKeyInPST(d = new Date()) {
+    return PST_DATE_FMT.format(d);
+}
+
 // In-memory cache of today's leaderboard (seeded from localStorage, updated from server)
 let _leaderboardCache = (() => {
     try {
         const data = JSON.parse(localStorage.getItem('dataro_leaderboard') || '[]');
-        const today = new Date().toDateString();
+        const today = dateKeyInPST();
         return data.filter(e => {
-            try { return new Date(e.time).toDateString() === today; } catch { return false; }
+            try { return dateKeyInPST(new Date(e.time)) === today; } catch { return false; }
         });
     } catch { return []; }
 })();
@@ -58,9 +68,9 @@ function getLeaderboard() {
 function getLeaderboardFromLocalStorage() {
     try {
         const data = JSON.parse(localStorage.getItem('dataro_leaderboard') || '[]');
-        const today = new Date().toDateString();
+        const today = dateKeyInPST();
         return data.filter(e => {
-            try { return new Date(e.time).toDateString() === today; } catch { return false; }
+            try { return dateKeyInPST(new Date(e.time)) === today; } catch { return false; }
         });
     } catch {
         return [];
@@ -328,6 +338,26 @@ const DATARO_MESSAGES = [
 ];
 
 /* ============================================
+   GAME-OVER IDLE TIMEOUT
+   ============================================ */
+
+const GAMEOVER_IDLE_MS = 15000;
+const IDLE_RESET_EVENTS = ['keydown', 'click', 'touchstart'];
+let _gameOverIdleTimer = null;
+
+function _resetGameOverIdle() {
+    if (_gameOverIdleTimer !== null) clearTimeout(_gameOverIdleTimer);
+    _gameOverIdleTimer = setTimeout(() => {
+        window.location.reload();
+    }, GAMEOVER_IDLE_MS);
+}
+
+function startGameOverIdleTimer() {
+    IDLE_RESET_EVENTS.forEach(e => window.addEventListener(e, _resetGameOverIdle));
+    _resetGameOverIdle();
+}
+
+/* ============================================
    MAIN GAME
    ============================================ */
 
@@ -468,11 +498,12 @@ async function main(canvas) {
 
         const name = playerData.name || 'Anonymous';
 
-        // Show screen immediately with local data
+        // Show screen with local data, but defer the rank number until the
+        // server response comes back — ranking against a stale / pre-PST
+        // cache is what used to produce a bogus "#1 for everyone".
         renderLeaderboard(name, score);
-        const rank = getPlayerRank(score);
         const rankEl = document.getElementById('player-rank');
-        if (rankEl) rankEl.textContent = `#${rank}`;
+        if (rankEl) rankEl.textContent = '—';
 
         showScreen('gameover-screen');
 
@@ -480,12 +511,15 @@ async function main(canvas) {
         const touchCtrl = document.getElementById('touch-controls');
         if (touchCtrl) touchCtrl.classList.add('hidden');
 
-        // Submit to server in background, then re-render with server data
+        // Submit to server and only then set the authoritative rank
         addToLeaderboard(name, score, donors, world, lettersSent, responseRate).then(() => {
             renderLeaderboard(name, score);
-            const serverRank = getPlayerRank(score);
-            if (rankEl) rankEl.textContent = `#${serverRank}`;
+            if (rankEl) rankEl.textContent = `#${getPlayerRank(score)}`;
         });
+
+        // Attract-mode idle timeout: if nobody touches anything for 15s
+        // after game-over, reload to splash so the next visitor starts fresh.
+        startGameOverIdleTimer();
 
         // Store lead with score locally as backup
         try {

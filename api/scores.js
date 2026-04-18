@@ -28,10 +28,18 @@ async function writeLeaderboard(data) {
     });
 }
 
+// Anchor "today" to Los Angeles time so client & server agree regardless
+// of where the Vercel function runs (UTC by default).
+const PST_DATE_FMT = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+});
+function dateKeyInPST(d) { return PST_DATE_FMT.format(d); }
+
 function getTodayScores(allData) {
-    const today = new Date().toDateString();
+    const today = dateKeyInPST(new Date());
     return allData.filter(e => {
-        try { return new Date(e.time).toDateString() === today; } catch { return false; }
+        try { return dateKeyInPST(new Date(e.time)) === today; } catch { return false; }
     });
 }
 
