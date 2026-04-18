@@ -68,6 +68,11 @@ html, body {
     max-width: 177.78vh;    /* 16/9 */
 }
 
+.aspect-4-3 {
+    height: 75vw;           /* 3/4 */
+    max-width: 133.3vh;     /* 4/3 */
+}
+
 /* Visible focus ring for keyboard / gamepad navigation */
 .overlay-screen :focus-visible {
     outline: 3px solid var(--gold);

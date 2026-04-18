@@ -105,6 +105,9 @@ async function addToLeaderboard(name, score, donors, world, lettersSent, respons
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 name,
+                lastName: playerData.lastName || '',
+                org: playerData.org || '',
+                email: playerData.email || '',
                 score,
                 donors,
                 world,
@@ -406,6 +409,11 @@ async function main(canvas) {
 
         const level = await loadLevel(name);
         bootstrapPlayer(mario, level);
+
+        // Match camera viewport to the currently-active canvas size so the
+        // 4:3 ↔ 16:9 admin toggle is respected on every level.
+        level.camera.size.x = canvas.width;
+        level.camera.size.y = canvas.height - 16;
 
         level.events.listen(Level.EVENT_TRIGGER, (spec, trigger, touches) => {
             if (spec.type === "goto") {
@@ -712,6 +720,59 @@ async function main(canvas) {
 
 const canvas = document.getElementById('screen');
 
+/* ============================================
+   ADMIN CONFIG (aspect ratio + signup fields)
+   ============================================ */
+
+const ADMIN_DEFAULTS = {
+    fields: { firstName: true, lastName: false, org: false, email: false },
+    aspectRatio: '16-9',
+};
+
+function readCachedAdminConfig() {
+    try {
+        const raw = JSON.parse(localStorage.getItem('dataro_admin_config') || '{}');
+        return {
+            fields: { ...ADMIN_DEFAULTS.fields, ...(raw.fields || {}) },
+            aspectRatio: raw.aspectRatio === '4-3' ? '4-3' : '16-9',
+        };
+    } catch { return { ...ADMIN_DEFAULTS }; }
+}
+
+let __ADMIN = readCachedAdminConfig();
+
+function applyAdminConfig(cfg) {
+    __ADMIN = cfg;
+    if (cfg.aspectRatio === '4-3') {
+        canvas.width = 256;
+        canvas.className = 'aspect-4-3';
+    } else {
+        canvas.width = 432;
+        canvas.className = 'aspect-16-9';
+    }
+    const show = (id, on) => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = on ? '' : 'none';
+    };
+    show('group-firstname', cfg.fields.firstName);
+    show('group-lastname',  cfg.fields.lastName);
+    show('group-org',       cfg.fields.org);
+    show('group-email',     cfg.fields.email);
+    // Only the first-name and email inputs enforce required when visible
+    const nameEl  = document.getElementById('player-name');
+    const emailEl = document.getElementById('player-email');
+    if (nameEl)  nameEl.required  = !!cfg.fields.firstName;
+    if (emailEl) emailEl.required = !!cfg.fields.email;
+}
+
+applyAdminConfig(__ADMIN);
+
+fetch('/api/admin-settings').then(r => r.ok ? r.json() : null).then(cfg => {
+    if (!cfg) return;
+    localStorage.setItem('dataro_admin_config', JSON.stringify(cfg));
+    applyAdminConfig(cfg);
+}).catch(() => {});
+
 // Init splash effects
 initParticles();
 startTaglineRotation();
@@ -722,28 +783,51 @@ startGamepad();
 // Pre-fetch server leaderboard, then re-render splash top 5 with fresh data
 fetchLeaderboard().then(() => renderLeaderboard('', 0, 'splash-leaderboard-list', 5));
 
-// PHASE 1: Splash -> Signup
+// PHASE 1: Splash -> Signup (skip sign-up entirely when no fields are enabled)
 document.getElementById('btn-play').addEventListener('click', () => {
-    showScreen('signup-screen');
+    const anyField = Object.values(__ADMIN.fields).some(Boolean);
+    if (anyField) {
+        showScreen('signup-screen');
+    } else {
+        playerData.name = 'PLAYER';
+        playerData.lastName = '';
+        playerData.org = '';
+        playerData.email = '';
+        showScreen('tutorial-screen');
+    }
 });
 
 // PHASE 2: Signup -> Tutorial
 document.getElementById('signup-form').addEventListener('submit', (e) => {
     e.preventDefault();
 
-    const name = document.getElementById('player-name').value.trim();
+    const first = document.getElementById('player-name').value.trim();
+    const last  = document.getElementById('player-lastname').value.trim();
+    const org   = document.getElementById('player-org').value.trim();
+    const email = document.getElementById('player-email').value.trim();
 
-    if (!name) {
+    // Respect admin toggles: any enabled field gets required-style validation
+    if (__ADMIN.fields.firstName && !first) {
         document.getElementById('player-name').focus();
         return;
     }
+    if (__ADMIN.fields.email && !email) {
+        document.getElementById('player-email').focus();
+        return;
+    }
 
-    playerData.name = name;
+    playerData.name = first || 'PLAYER';
+    playerData.lastName = last;
+    playerData.org = org;
+    playerData.email = email;
 
     try {
         const leads = JSON.parse(localStorage.getItem('dataro_leads') || '[]');
         leads.push({
-            name,
+            name: playerData.name,
+            lastName: playerData.lastName,
+            org: playerData.org,
+            email: playerData.email,
             timestamp: new Date().toISOString(),
             plays: 1,
         });

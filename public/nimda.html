@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin · Super Datario</title>
+    <style>
+        :root {
+            --darker: #0a0617;
+            --dataro-purple-light: #9B6FD0;
+            --dataro-purple: #6B3FA0;
+            --gold: #FFD700;
+            --white: #fff;
+            --gray-light: #c6c3d1;
+            --gray: #6e6a7a;
+            --border: rgba(155, 111, 208, 0.25);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: var(--darker);
+            color: var(--white);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            padding: 32px 24px 64px;
+        }
+        h1 { font-size: 1.8rem; margin: 0 0 4px; letter-spacing: 2px; }
+        h2 { font-size: 1rem; letter-spacing: 3px; color: var(--dataro-purple-light); text-transform: uppercase; margin: 32px 0 12px; }
+        .sub { color: var(--gray-light); font-size: 0.9rem; margin-bottom: 24px; }
+        .status { display: inline-block; font-size: 0.8rem; color: var(--gray); margin-left: 12px; }
+        .status.saved { color: var(--gold); }
+        .status.error { color: #ff6b6b; }
+
+        .card {
+            background: rgba(107, 63, 160, 0.08);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            max-width: 1200px;
+        }
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+        }
+        .toggle-row label { cursor: pointer; user-select: none; }
+        .toggle-row input[type=checkbox],
+        .toggle-row input[type=radio] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--dataro-purple-light);
+            cursor: pointer;
+        }
+        .toggle-group { display: flex; gap: 24px; flex-wrap: wrap; }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 0.88rem;
+        }
+        th, td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        th {
+            color: var(--dataro-purple-light);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.72rem;
+            position: sticky;
+            top: 0;
+            background: var(--darker);
+        }
+        td.score, td.rank { font-variant-numeric: tabular-nums; }
+        td.rank { color: var(--gold); font-weight: 700; }
+        tr:hover td { background: rgba(155, 111, 208, 0.06); }
+        .empty { padding: 24px; color: var(--gray); text-align: center; }
+        .table-wrap { max-height: 70vh; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
+
+        .plays-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .plays-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--gray-light);
+        }
+        .action-label { color: var(--gray); }
+        .action-sep { color: var(--gray); }
+        .action-link {
+            color: var(--dataro-purple-light);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .action-link:hover { text-decoration: underline; }
+        .action-link.action-danger { color: #ff6b6b; }
+    </style>
+</head>
+<body>
+    <h1>⚙️ Admin</h1>
+    <div class="sub"><a href="/" style="color: var(--dataro-purple-light)">← back to game</a></div>
+
+    <div class="card">
+        <h2>Sign-up fields <span id="fields-status" class="status"></span></h2>
+        <div class="sub">Choose which info the "Ready to play?" screen collects. All off = skip sign-up and go straight to gameplay.</div>
+        <div class="toggle-group">
+            <div class="toggle-row"><input type="checkbox" id="f-firstName"><label for="f-firstName">First Name</label></div>
+            <div class="toggle-row"><input type="checkbox" id="f-lastName"><label for="f-lastName">Last Name</label></div>
+            <div class="toggle-row"><input type="checkbox" id="f-org"><label for="f-org">Organisation</label></div>
+            <div class="toggle-row"><input type="checkbox" id="f-email"><label for="f-email">Email</label></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Gameplay aspect ratio <span id="aspect-status" class="status"></span></h2>
+        <div class="toggle-group">
+            <div class="toggle-row"><input type="radio" name="aspect" id="a-4-3" value="4-3"><label for="a-4-3">4:3 (256 × 240)</label></div>
+            <div class="toggle-row"><input type="radio" name="aspect" id="a-16-9" value="16-9"><label for="a-16-9">16:9 (432 × 240)</label></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="plays-header">
+            <h2>Plays <span id="plays-status" class="status"></span></h2>
+            <div class="plays-actions">
+                <span class="action-label">Download CSV:</span>
+                <a href="#" id="csv-all" class="action-link">All</a>
+                <span class="action-sep">·</span>
+                <a href="#" id="csv-today" class="action-link">Today</a>
+                <span class="action-sep">|</span>
+                <a href="#" id="reset-table" class="action-link action-danger">Reset Table</a>
+            </div>
+        </div>
+        <div class="sub">All recorded plays. Daily rank is computed within each PST date.</div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>When (PST)</th>
+                        <th>Daily Rank</th>
+                        <th>Score</th>
+                        <th>World</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Organisation</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody id="plays-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+<script>
+const PST_FMT_DATE = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit',
+});
+const PST_FMT_TIME = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles', hour: '2-digit', minute: '2-digit', hour12: false,
+});
+const dateKey = d => PST_FMT_DATE.format(d);
+
+function showStatus(id, text, cls) {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = 'status ' + (cls || '');
+    if (text) setTimeout(() => { if (el.textContent === text) { el.textContent = ''; el.className = 'status'; } }, 2500);
+}
+
+async function loadConfig() {
+    try {
+        const resp = await fetch('/api/admin-settings');
+        if (!resp.ok) throw new Error('status ' + resp.status);
+        const cfg = await resp.json();
+        document.getElementById('f-firstName').checked = !!cfg.fields.firstName;
+        document.getElementById('f-lastName').checked  = !!cfg.fields.lastName;
+        document.getElementById('f-org').checked       = !!cfg.fields.org;
+        document.getElementById('f-email').checked     = !!cfg.fields.email;
+        document.getElementById(cfg.aspectRatio === '4-3' ? 'a-4-3' : 'a-16-9').checked = true;
+    } catch (err) {
+        showStatus('fields-status', 'Load failed', 'error');
+    }
+}
+
+async function saveConfig(statusEl) {
+    const cfg = {
+        fields: {
+            firstName: document.getElementById('f-firstName').checked,
+            lastName:  document.getElementById('f-lastName').checked,
+            org:       document.getElementById('f-org').checked,
+            email:     document.getElementById('f-email').checked,
+        },
+        aspectRatio: document.querySelector('input[name=aspect]:checked')?.value || '16-9',
+    };
+    try {
+        const resp = await fetch('/api/admin-settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cfg),
+        });
+        if (!resp.ok) throw new Error('status ' + resp.status);
+        showStatus(statusEl, 'Saved ✓', 'saved');
+    } catch (err) {
+        showStatus(statusEl, 'Save failed', 'error');
+    }
+}
+
+['f-firstName', 'f-lastName', 'f-org', 'f-email'].forEach(id => {
+    document.getElementById(id).addEventListener('change', () => saveConfig('fields-status'));
+});
+document.querySelectorAll('input[name=aspect]').forEach(el => {
+    el.addEventListener('change', () => saveConfig('aspect-status'));
+});
+
+let _lastEntries = [];
+
+async function loadPlays() {
+    try {
+        const resp = await fetch('/api/scores?all=true');
+        if (!resp.ok) throw new Error('status ' + resp.status);
+        const { leaderboard } = await resp.json();
+        _lastEntries = leaderboard || [];
+        renderPlays(_lastEntries);
+    } catch (err) {
+        showStatus('plays-status', 'Load failed', 'error');
+    }
+}
+
+const CSV_COLUMNS = [
+    { key: 'datePST',   label: 'Date (PST)' },
+    { key: 'timePST',   label: 'Time (PST)' },
+    { key: 'dailyRank', label: 'Daily Rank' },
+    { key: 'name',      label: 'First Name' },
+    { key: 'lastName',  label: 'Last Name' },
+    { key: 'org',       label: 'Organisation' },
+    { key: 'email',     label: 'Email' },
+    { key: 'score',     label: 'Score' },
+    { key: 'world',     label: 'World' },
+    { key: 'donors',    label: 'Donors' },
+    { key: 'lettersSent',  label: 'Letters Sent' },
+    { key: 'responseRate', label: 'Response Rate' },
+    { key: 'wantsUpdates', label: 'Wants Updates' },
+    { key: 'time',      label: 'Timestamp (epoch ms)' },
+];
+
+function csvEscape(value) {
+    if (value === null || value === undefined) return '';
+    const str = String(value);
+    if (/[",\r\n]/.test(str)) return '"' + str.replace(/"/g, '""') + '"';
+    return str;
+}
+
+function buildCsv(entries) {
+    // Compute daily rank within each PST date group
+    const byDate = new Map();
+    for (const e of entries) {
+        const k = dateKey(new Date(e.time));
+        if (!byDate.has(k)) byDate.set(k, []);
+        byDate.get(k).push(e);
+    }
+    const rankMap = new Map();
+    for (const group of byDate.values()) {
+        group.sort((a, b) => b.score - a.score);
+        group.forEach((e, i) => rankMap.set(e, i + 1));
+    }
+
+    const sorted = [...entries].sort((a, b) => (b.time || 0) - (a.time || 0));
+    const header = CSV_COLUMNS.map(c => csvEscape(c.label)).join(',');
+    const rows = sorted.map(e => {
+        const d = new Date(e.time);
+        const row = {
+            datePST:   dateKey(d),
+            timePST:   PST_FMT_TIME.format(d),
+            dailyRank: rankMap.get(e) || '',
+            name:      e.name || '',
+            lastName:  e.lastName || '',
+            org:       e.org || '',
+            email:     e.email || '',
+            score:     e.score ?? '',
+            world:     e.world ?? '',
+            donors:    e.donors ?? '',
+            lettersSent:  e.lettersSent ?? '',
+            responseRate: e.responseRate ?? '',
+            wantsUpdates: e.wantsUpdates ?? '',
+            time:      e.time ?? '',
+        };
+        return CSV_COLUMNS.map(c => csvEscape(row[c.key])).join(',');
+    });
+    return header + '\n' + rows.join('\n') + '\n';
+}
+
+function downloadCsv(scope) {
+    const today = dateKey(new Date());
+    const entries = scope === 'today'
+        ? _lastEntries.filter(e => dateKey(new Date(e.time)) === today)
+        : _lastEntries;
+
+    if (!entries.length) {
+        showStatus('plays-status', 'No rows to export', 'error');
+        return;
+    }
+
+    const csv = buildCsv(entries);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const stamp = new Date().toISOString().slice(0, 10);
+    const filename = `super-datario-plays-${scope}-${stamp}.csv`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showStatus('plays-status', `Exported ${entries.length} row${entries.length === 1 ? '' : 's'}`, 'saved');
+}
+
+document.getElementById('csv-all').addEventListener('click', (e) => {
+    e.preventDefault();
+    downloadCsv('all');
+});
+document.getElementById('csv-today').addEventListener('click', (e) => {
+    e.preventDefault();
+    downloadCsv('today');
+});
+
+document.getElementById('reset-table').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const ok = window.confirm('Are you sure? This will permanently delete every leaderboard entry. This cannot be undone.');
+    if (!ok) return;
+    try {
+        const resp = await fetch('/api/scores', { method: 'DELETE' });
+        if (!resp.ok) throw new Error('status ' + resp.status);
+        _lastEntries = [];
+        renderPlays(_lastEntries);
+        showStatus('plays-status', 'Leaderboard cleared', 'saved');
+    } catch (err) {
+        showStatus('plays-status', 'Reset failed', 'error');
+    }
+});
+
+function renderPlays(entries) {
+    const body = document.getElementById('plays-body');
+    if (!entries.length) {
+        body.innerHTML = '<tr><td colspan="8" class="empty">No plays yet.</td></tr>';
+        return;
+    }
+
+    // Compute per-entry daily rank by grouping on PST date key + sorting by score
+    const byDate = new Map();
+    for (const e of entries) {
+        const k = dateKey(new Date(e.time));
+        if (!byDate.has(k)) byDate.set(k, []);
+        byDate.get(k).push(e);
+    }
+    const rankMap = new Map(); // entry -> rank
+    for (const group of byDate.values()) {
+        group.sort((a, b) => b.score - a.score);
+        group.forEach((e, i) => rankMap.set(e, i + 1));
+    }
+
+    // Render most-recent first
+    const sorted = [...entries].sort((a, b) => (b.time || 0) - (a.time || 0));
+    body.innerHTML = sorted.map(e => {
+        const d = new Date(e.time);
+        const when = `${dateKey(d)} ${PST_FMT_TIME.format(d)}`;
+        const esc = (s) => String(s || '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[c]);
+        return `<tr>
+            <td>${esc(when)}</td>
+            <td class="rank">#${rankMap.get(e)}</td>
+            <td class="score">$${(e.score || 0).toLocaleString()}</td>
+            <td>${esc(e.world || '')}</td>
+            <td>${esc(e.name || '')}</td>
+            <td>${esc(e.lastName || '')}</td>
+            <td>${esc(e.org || '')}</td>
+            <td>${esc(e.email || '')}</td>
+        </tr>`;
+    }).join('');
+}
+
+loadConfig();
+loadPlays();
+</script>
+</body>
+</html>
