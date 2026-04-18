@@ -45,7 +45,7 @@ function getTodayScores(allData) {
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') {
@@ -95,6 +95,17 @@ export default async function handler(req, res) {
 
         const today = getTodayScores(trimmed);
         return res.status(200).json({ leaderboard: today });
+    }
+
+    if (req.method === 'DELETE') {
+        try {
+            await writeLeaderboard([]);
+            console.log('[Scores API] Leaderboard cleared via DELETE');
+            return res.status(200).json({ leaderboard: [] });
+        } catch (err) {
+            console.error('[Scores API] Failed to clear leaderboard:', err.message);
+            return res.status(500).json({ error: 'Failed to clear leaderboard' });
+        }
     }
 
     return res.status(405).json({ error: 'Method not allowed' });

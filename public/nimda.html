@@ -81,6 +81,30 @@
         tr:hover td { background: rgba(155, 111, 208, 0.06); }
         .empty { padding: 24px; color: var(--gray); text-align: center; }
         .table-wrap { max-height: 70vh; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
+
+        .plays-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .plays-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--gray-light);
+        }
+        .action-label { color: var(--gray); }
+        .action-sep { color: var(--gray); }
+        .action-link {
+            color: var(--dataro-purple-light);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .action-link:hover { text-decoration: underline; }
+        .action-link.action-danger { color: #ff6b6b; }
     </style>
 </head>
 <body>
@@ -107,7 +131,17 @@
     </div>
 
     <div class="card">
-        <h2>Plays <span id="plays-status" class="status"></span></h2>
+        <div class="plays-header">
+            <h2>Plays <span id="plays-status" class="status"></span></h2>
+            <div class="plays-actions">
+                <span class="action-label">Download CSV:</span>
+                <a href="#" id="csv-all" class="action-link">All</a>
+                <span class="action-sep">·</span>
+                <a href="#" id="csv-today" class="action-link">Today</a>
+                <span class="action-sep">|</span>
+                <a href="#" id="reset-table" class="action-link action-danger">Reset Table</a>
+            </div>
+        </div>
         <div class="sub">All recorded plays. Daily rank is computed within each PST date.</div>
         <div class="table-wrap">
             <table>
@@ -189,16 +223,132 @@ document.querySelectorAll('input[name=aspect]').forEach(el => {
     el.addEventListener('change', () => saveConfig('aspect-status'));
 });
 
+let _lastEntries = [];
+
 async function loadPlays() {
     try {
         const resp = await fetch('/api/scores?all=true');
         if (!resp.ok) throw new Error('status ' + resp.status);
         const { leaderboard } = await resp.json();
-        renderPlays(leaderboard || []);
+        _lastEntries = leaderboard || [];
+        renderPlays(_lastEntries);
     } catch (err) {
         showStatus('plays-status', 'Load failed', 'error');
     }
 }
+
+const CSV_COLUMNS = [
+    { key: 'datePST',   label: 'Date (PST)' },
+    { key: 'timePST',   label: 'Time (PST)' },
+    { key: 'dailyRank', label: 'Daily Rank' },
+    { key: 'name',      label: 'First Name' },
+    { key: 'lastName',  label: 'Last Name' },
+    { key: 'org',       label: 'Organisation' },
+    { key: 'email',     label: 'Email' },
+    { key: 'score',     label: 'Score' },
+    { key: 'world',     label: 'World' },
+    { key: 'donors',    label: 'Donors' },
+    { key: 'lettersSent',  label: 'Letters Sent' },
+    { key: 'responseRate', label: 'Response Rate' },
+    { key: 'wantsUpdates', label: 'Wants Updates' },
+    { key: 'time',      label: 'Timestamp (epoch ms)' },
+];
+
+function csvEscape(value) {
+    if (value === null || value === undefined) return '';
+    const str = String(value);
+    if (/[",\r\n]/.test(str)) return '"' + str.replace(/"/g, '""') + '"';
+    return str;
+}
+
+function buildCsv(entries) {
+    // Compute daily rank within each PST date group
+    const byDate = new Map();
+    for (const e of entries) {
+        const k = dateKey(new Date(e.time));
+        if (!byDate.has(k)) byDate.set(k, []);
+        byDate.get(k).push(e);
+    }
+    const rankMap = new Map();
+    for (const group of byDate.values()) {
+        group.sort((a, b) => b.score - a.score);
+        group.forEach((e, i) => rankMap.set(e, i + 1));
+    }
+
+    const sorted = [...entries].sort((a, b) => (b.time || 0) - (a.time || 0));
+    const header = CSV_COLUMNS.map(c => csvEscape(c.label)).join(',');
+    const rows = sorted.map(e => {
+        const d = new Date(e.time);
+        const row = {
+            datePST:   dateKey(d),
+            timePST:   PST_FMT_TIME.format(d),
+            dailyRank: rankMap.get(e) || '',
+            name:      e.name || '',
+            lastName:  e.lastName || '',
+            org:       e.org || '',
+            email:     e.email || '',
+            score:     e.score ?? '',
+            world:     e.world ?? '',
+            donors:    e.donors ?? '',
+            lettersSent:  e.lettersSent ?? '',
+            responseRate: e.responseRate ?? '',
+            wantsUpdates: e.wantsUpdates ?? '',
+            time:      e.time ?? '',
+        };
+        return CSV_COLUMNS.map(c => csvEscape(row[c.key])).join(',');
+    });
+    return header + '\n' + rows.join('\n') + '\n';
+}
+
+function downloadCsv(scope) {
+    const today = dateKey(new Date());
+    const entries = scope === 'today'
+        ? _lastEntries.filter(e => dateKey(new Date(e.time)) === today)
+        : _lastEntries;
+
+    if (!entries.length) {
+        showStatus('plays-status', 'No rows to export', 'error');
+        return;
+    }
+
+    const csv = buildCsv(entries);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const stamp = new Date().toISOString().slice(0, 10);
+    const filename = `super-datario-plays-${scope}-${stamp}.csv`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showStatus('plays-status', `Exported ${entries.length} row${entries.length === 1 ? '' : 's'}`, 'saved');
+}
+
+document.getElementById('csv-all').addEventListener('click', (e) => {
+    e.preventDefault();
+    downloadCsv('all');
+});
+document.getElementById('csv-today').addEventListener('click', (e) => {
+    e.preventDefault();
+    downloadCsv('today');
+});
+
+document.getElementById('reset-table').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const ok = window.confirm('Are you sure? This will permanently delete every leaderboard entry. This cannot be undone.');
+    if (!ok) return;
+    try {
+        const resp = await fetch('/api/scores', { method: 'DELETE' });
+        if (!resp.ok) throw new Error('status ' + resp.status);
+        _lastEntries = [];
+        renderPlays(_lastEntries);
+        showStatus('plays-status', 'Leaderboard cleared', 'saved');
+    } catch (err) {
+        showStatus('plays-status', 'Reset failed', 'error');
+    }
+});
 
 function renderPlays(entries) {
     const body = document.getElementById('plays-body');
