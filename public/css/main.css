@@ -597,7 +597,7 @@ html, body {
 .tutorial-content {
     text-align: center;
     padding: 24px;
-    max-width: 580px;
+    max-width: 720px;
     animation: fadeInUp 0.5s ease-out;
 }
 
@@ -616,11 +616,11 @@ html, body {
 }
 
 .tutorial-controls-group {
-    margin-bottom: 24px;
+    margin-bottom: 18px;
 }
 
 .tutorial-controls-group:last-of-type {
-    margin-bottom: 36px;
+    margin-bottom: 28px;
 }
 
 .controls-heading {
@@ -638,17 +638,17 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 20px;
+    gap: 12px;
     flex-wrap: wrap;
 }
 
-.btn-y, .btn-b {
+.btn-y, .btn-b, .btn-a {
     background: var(--dataro-purple-light);
     color: var(--darker);
 }
 
 .control-divider {
-    font-size: 1.8rem;
+    font-size: 1.2rem;
     color: var(--gray);
     font-weight: 300;
 }
@@ -673,24 +673,24 @@ html, body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 60px;
-    height: 60px;
-    padding: 0 16px;
+    min-width: 48px;
+    height: 48px;
+    padding: 0 12px;
     background: rgba(255, 255, 255, 0.07);
     border: 2px solid rgba(255, 255, 255, 0.2);
-    border-bottom-width: 5px;
-    border-radius: 14px;
+    border-bottom-width: 4px;
+    border-radius: 12px;
     font-family: var(--font-display);
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: var(--white);
     transition: all 0.15s ease;
 }
 
 .key.wide {
-    min-width: 140px;
-    font-size: 1rem;
-    letter-spacing: 3px;
+    min-width: 80px;
+    font-size: 0.85rem;
+    letter-spacing: 2px;
 }
 
 .key.arrow-key {
@@ -704,7 +704,7 @@ html, body {
 }
 
 .control-label {
-    font-size: 1.05rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: var(--white);
 }

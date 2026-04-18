@@ -5,7 +5,7 @@
 
 const BUTTON_MAP = {
     0: { code: 'KeyZ',      key: 'z' },          // B  — throw letter
-    1: { code: 'Enter',     key: 'Enter' },      // A  — advance / any key
+    1: { code: 'ShiftLeft', key: 'Shift' },      // A  — run (also counts as "any key")
     2: { code: 'Space',     key: ' ' },          // Y  — jump
     3: { code: 'ShiftLeft', key: 'Shift' },      // X  — run
     8: { code: 'Enter',     key: 'Enter' },      // Select
