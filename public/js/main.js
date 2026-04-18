@@ -344,15 +344,29 @@ const DATARO_MESSAGES = [
    GAME-OVER IDLE TIMEOUT
    ============================================ */
 
-const GAMEOVER_IDLE_MS = 15000;
+// 15s in EVENT mode (booth kiosk), 45s in DIGITAL mode (web players need
+// more time to read the board before being reset to splash).
+const GAMEOVER_IDLE_EVENT_MS   = 15000;
+const GAMEOVER_IDLE_DIGITAL_MS = 45000;
 const IDLE_RESET_EVENTS = ['keydown', 'click', 'touchstart'];
 let _gameOverIdleTimer = null;
+
+function getGameOverIdleMs() {
+    return (__ADMIN && __ADMIN.mode === 'digital')
+        ? GAMEOVER_IDLE_DIGITAL_MS
+        : GAMEOVER_IDLE_EVENT_MS;
+}
+
+// Narrative scene auto-advance hold: 15s event, 45s digital.
+function getNarrativeHoldSec() {
+    return (__ADMIN && __ADMIN.mode === 'digital') ? 45 : 15;
+}
 
 function _resetGameOverIdle() {
     if (_gameOverIdleTimer !== null) clearTimeout(_gameOverIdleTimer);
     _gameOverIdleTimer = setTimeout(() => {
         window.location.reload();
-    }, GAMEOVER_IDLE_MS);
+    }, getGameOverIdleMs());
 }
 
 function startGameOverIdleTimer() {
@@ -652,6 +666,7 @@ async function main(canvas) {
             const cardScene = new NarrativeScene(font, cardLines, {
                 scrollSpeed: 0,
                 showPrompt: true,
+                holdSeconds: getNarrativeHoldSec(),
             });
             cardScene._skipDelay = 1.5;
             sceneRunner.addSceneManual(cardScene);
@@ -705,6 +720,7 @@ async function main(canvas) {
     const openingLines = pickRandom(OPENING_NARRATIVES);
     const narrativeScene = new NarrativeScene(font, openingLines, {
         title: 'THE FUNDRAISER',
+        holdSeconds: getNarrativeHoldSec(),
     });
     sceneRunner.addSceneManual(narrativeScene);
     sceneRunner.runNext();
@@ -773,10 +789,21 @@ function applyAdminConfig(cfg) {
 
     // Mode-driven behaviour
     const mode = cfg.mode === 'digital' ? 'digital' : 'event';
+    const utm = UTM_BY_MODE[mode];
     const dataroBtn = document.getElementById('btn-dataro');
-    if (dataroBtn) dataroBtn.href = UTM_BY_MODE[mode];
+    if (dataroBtn) dataroBtn.href = utm;
     const prizePill = document.querySelector('.conf-badge');
     if (prizePill) prizePill.style.display = mode === 'digital' ? 'none' : '';
+
+    // In DIGITAL mode every Dataro logo on the page links to the CTA URL;
+    // in EVENT mode the logos are decorative (kiosk has no browser to click).
+    document.querySelectorAll('.dataro-badge').forEach(badge => {
+        badge.onclick = (mode === 'digital')
+            ? () => window.open(utm, '_blank', 'noopener')
+            : null;
+        badge.style.cursor = mode === 'digital' ? 'pointer' : '';
+        badge.setAttribute('role', mode === 'digital' ? 'link' : 'img');
+    });
 }
 
 applyAdminConfig(__ADMIN);
