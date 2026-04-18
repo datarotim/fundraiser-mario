@@ -112,6 +112,15 @@
     <div class="sub"><a href="/" style="color: var(--dataro-purple-light)">← back to game</a></div>
 
     <div class="card">
+        <h2>Mode <span id="mode-status" class="status"></span></h2>
+        <div class="sub">EVENT = booth defaults, "Top Score Wins a Prize!" pill visible, offline UTM. DIGITAL = all fields collected, no prize pill, referral UTM.</div>
+        <div class="toggle-group">
+            <div class="toggle-row"><input type="radio" name="mode" id="m-event" value="event"><label for="m-event">Event</label></div>
+            <div class="toggle-row"><input type="radio" name="mode" id="m-digital" value="digital"><label for="m-digital">Digital</label></div>
+        </div>
+    </div>
+
+    <div class="card">
         <h2>Sign-up fields <span id="fields-status" class="status"></span></h2>
         <div class="sub">Choose which info the "Ready to play?" screen collects. All off = skip sign-up and go straight to gameplay.</div>
         <div class="toggle-group">
@@ -178,11 +187,18 @@ function showStatus(id, text, cls) {
     if (text) setTimeout(() => { if (el.textContent === text) { el.textContent = ''; el.className = 'status'; } }, 2500);
 }
 
+const MODE_FIELD_DEFAULTS = {
+    event:   { firstName: true,  lastName: false, org: false, email: false },
+    digital: { firstName: true,  lastName: true,  org: true,  email: true  },
+};
+
 async function loadConfig() {
     try {
         const resp = await fetch('/api/admin-settings');
         if (!resp.ok) throw new Error('status ' + resp.status);
         const cfg = await resp.json();
+        const mode = cfg.mode === 'digital' ? 'digital' : 'event';
+        document.getElementById(mode === 'digital' ? 'm-digital' : 'm-event').checked = true;
         document.getElementById('f-firstName').checked = !!cfg.fields.firstName;
         document.getElementById('f-lastName').checked  = !!cfg.fields.lastName;
         document.getElementById('f-org').checked       = !!cfg.fields.org;
@@ -195,6 +211,7 @@ async function loadConfig() {
 
 async function saveConfig(statusEl) {
     const cfg = {
+        mode: document.querySelector('input[name=mode]:checked')?.value || 'event',
         fields: {
             firstName: document.getElementById('f-firstName').checked,
             lastName:  document.getElementById('f-lastName').checked,
@@ -215,6 +232,18 @@ async function saveConfig(statusEl) {
         showStatus(statusEl, 'Save failed', 'error');
     }
 }
+
+document.querySelectorAll('input[name=mode]').forEach(el => {
+    el.addEventListener('change', () => {
+        const mode = document.querySelector('input[name=mode]:checked')?.value || 'event';
+        const defaults = MODE_FIELD_DEFAULTS[mode];
+        document.getElementById('f-firstName').checked = defaults.firstName;
+        document.getElementById('f-lastName').checked  = defaults.lastName;
+        document.getElementById('f-org').checked       = defaults.org;
+        document.getElementById('f-email').checked     = defaults.email;
+        saveConfig('mode-status');
+    });
+});
 
 ['f-firstName', 'f-lastName', 'f-org', 'f-email'].forEach(id => {
     document.getElementById(id).addEventListener('change', () => saveConfig('fields-status'));

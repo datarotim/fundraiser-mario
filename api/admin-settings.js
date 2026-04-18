@@ -3,6 +3,7 @@ import { put, list } from '@vercel/blob';
 const BLOB_KEY = 'admin-config.json';
 
 const DEFAULTS = {
+    mode: 'event',
     fields: { firstName: true, lastName: false, org: false, email: false },
     aspectRatio: '16-9',
 };
@@ -16,6 +17,7 @@ async function readConfig() {
         });
         const data = await resp.json();
         return {
+            mode: data.mode === 'digital' ? 'digital' : 'event',
             fields: { ...DEFAULTS.fields, ...(data.fields || {}) },
             aspectRatio: data.aspectRatio === '4-3' ? '4-3' : '16-9',
         };
@@ -38,6 +40,7 @@ function sanitize(body) {
     const incoming = body || {};
     const fields = incoming.fields || {};
     return {
+        mode: incoming.mode === 'digital' ? 'digital' : 'event',
         fields: {
             firstName: Boolean(fields.firstName),
             lastName: Boolean(fields.lastName),
