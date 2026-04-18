@@ -4,7 +4,7 @@ export function createBackgroundLayer(level, tiles, sprites) {
     const resolver = new TileResolver(tiles);
 
     const buffer = document.createElement('canvas');
-    buffer.width = 256 + 16;
+    buffer.width = 432 + 16;
     buffer.height = 240;
 
     const context = buffer.getContext('2d');

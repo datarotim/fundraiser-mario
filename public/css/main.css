@@ -63,9 +63,9 @@ html, body {
     z-index: 1;
 }
 
-.aspect-4-3 {
-    height: 75vw;
-    max-width: 133.3vh;
+.aspect-16-9 {
+    height: 56.25vw;        /* 9/16 */
+    max-width: 177.78vh;    /* 16/9 */
 }
 
 /* Visible focus ring for keyboard / gamepad navigation */
