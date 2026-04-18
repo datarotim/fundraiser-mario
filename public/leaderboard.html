@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard · Super Datario</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body.leaderboard-page {
+            margin: 0;
+            padding: 48px 56px;
+            background: var(--darker);
+            color: var(--white);
+            font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
+            display: block;
+        }
+
+        .lb-hero {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .lb-hero .dataro-badge { margin-bottom: 14px; }
+
+        /* SUPER DATARIO at ~half the splash size (splash uses clamp(3.5rem, 9vw, 7rem)). */
+        .lb-game-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.75rem, 4.5vw, 3.5rem);
+            font-weight: 900;
+            letter-spacing: 4px;
+            margin: 8px 0 0;
+            background: linear-gradient(135deg, var(--dataro-purple-light) 0%, var(--white) 35%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 2px 12px var(--dataro-purple-glow));
+        }
+
+        .lb-section-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.5rem, 3vw, 2.8rem);
+            letter-spacing: 8px;
+            text-align: center;
+            color: var(--dataro-purple-light);
+            margin: 40px 0 20px;
+            text-transform: uppercase;
+        }
+
+        .lb-table-wrap {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .lb-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: clamp(1rem, 1.4vw, 1.6rem);
+        }
+        .lb-table th,
+        .lb-table td {
+            padding: 14px 18px;
+            text-align: left;
+            border-bottom: 1px solid rgba(155, 111, 208, 0.2);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .lb-table th {
+            color: var(--dataro-purple-light);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: clamp(0.75rem, 1vw, 1rem);
+            font-weight: 700;
+        }
+        .lb-table td.col-rank {
+            color: var(--gold);
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            width: 6ch;
+        }
+        .lb-table td.col-date {
+            color: var(--gray-light);
+            width: 14ch;
+        }
+        .lb-table tr:hover td { background: rgba(155, 111, 208, 0.05); }
+
+        .lb-empty {
+            padding: 40px;
+            color: var(--gray);
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="leaderboard-page">
+    <div class="lb-hero">
+        <div class="dataro-badge">
+            <img src="/images/dataro-logo.png" alt="Dataro" class="dataro-logo-img" />
+        </div>
+        <div class="splash-presents">presents</div>
+        <h1 class="lb-game-title">SUPER DATARIO</h1>
+    </div>
+
+    <h2 class="lb-section-title">Leaderboard</h2>
+
+    <div class="lb-table-wrap">
+        <table class="lb-table">
+            <thead>
+                <tr>
+                    <th class="col-rank">#</th>
+                    <th class="col-first">First</th>
+                    <th class="col-last">Last</th>
+                    <th class="col-org">Organization</th>
+                    <th class="col-date">Date</th>
+                </tr>
+            </thead>
+            <tbody id="lb-body">
+                <tr><td colspan="5" class="lb-empty">Loading…</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+<script>
+const PST_SHORT = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric',
+});
+const esc = (s) => String(s ?? '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[c]);
+
+async function load() {
+    try {
+        const r = await fetch('/api/scores?all=true');
+        if (!r.ok) return;
+        const { leaderboard } = await r.json();
+        render(leaderboard || []);
+    } catch { /* silent; retry on next interval */ }
+}
+
+function render(entries) {
+    const top = [...entries].sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 25);
+    const body = document.getElementById('lb-body');
+    if (!top.length) {
+        body.innerHTML = '<tr><td colspan="5" class="lb-empty">No scores yet. Be the first!</td></tr>';
+        return;
+    }
+    body.innerHTML = top.map((e, i) => {
+        const d = e.time ? PST_SHORT.format(new Date(e.time)) : '';
+        return `<tr>
+            <td class="col-rank">#${i + 1}</td>
+            <td class="col-first">${esc(e.name)}</td>
+            <td class="col-last">${esc(e.lastName)}</td>
+            <td class="col-org">${esc(e.org)}</td>
+            <td class="col-date">${esc(d)}</td>
+        </tr>`;
+    }).join('');
+}
+
+load();
+setInterval(load, 30_000);
+</script>
+</body>
+</html>
