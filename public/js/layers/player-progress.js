@@ -32,19 +32,30 @@ export function createPlayerProgressLayer(font, level) {
         if (!entity) return;
         const player = entity.traits.get(Player);
 
+        const w = context.canvas.width;
+
         const fact = QUARTER_FACTS[level.name] || 'QUARTER ' + getWorldDisplayName(level.name);
-        const factX = Math.floor(context.canvas.width / 2) - Math.floor(fact.length * size / 2);
+        const factX = Math.floor(w / 2) - Math.floor(fact.length * size / 2);
         font.print(fact, context, factX, size * 11);
 
-        font.print('QUARTER ' + getWorldDisplayName(level.name), context, size * 11, size * 13);
+        const quarterText = 'QUARTER ' + getWorldDisplayName(level.name);
+        const quarterX = Math.floor(w / 2) - Math.floor(quarterText.length * size / 2);
+        font.print(quarterText, context, quarterX, size * 13);
 
-        font.print('×' + player.lives.toString().padStart(3, ' '),
-            context, size * 16, size * 16);
+        // Sprite + "× NNN" lives block. Block spans 56 px (sprite 32 + 24 px gap to text).
+        // Sprite sits at block origin; text at +24 px. Center the block on the canvas.
+        const LIVES_BLOCK_W = 56;
+        const SPRITE_OFFSET = 0;
+        const TEXT_OFFSET = 24;
+        const blockX = Math.floor((w - LIVES_BLOCK_W) / 2);
 
         spriteBufferContext.clearRect(0, 0,
             spriteBuffer.width, spriteBuffer.height);
         entity.draw(spriteBufferContext);
-        context.drawImage(spriteBuffer, size * 13, size * 15);
+        context.drawImage(spriteBuffer, blockX + SPRITE_OFFSET, size * 15);
+
+        font.print('×' + player.lives.toString().padStart(3, ' '),
+            context, blockX + TEXT_OFFSET, size * 16);
 
 
     };
