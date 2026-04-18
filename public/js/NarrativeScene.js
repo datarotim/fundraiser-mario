@@ -14,6 +14,7 @@ export default class NarrativeScene extends Scene {
         this.title = options.title || null;
         this.subtitle = options.subtitle || null;
         this.showPrompt = options.showPrompt !== false;
+        this.holdSeconds = typeof options.holdSeconds === 'number' ? options.holdSeconds : 15;
 
         // Allow skip after a brief delay so stray keypresses from the prior
         // screen don't dismiss the intro instantly.
@@ -56,7 +57,7 @@ export default class NarrativeScene extends Scene {
 
         if (this.phase === 'waiting') {
             this.holdTime += gameContext.deltaTime;
-            if (this.holdTime > 15 && !this._dismissed) {
+            if (this.holdTime > this.holdSeconds && !this._dismissed) {
                 this._dismissed = true;
                 this.events.emit(Scene.EVENT_COMPLETE);
             }

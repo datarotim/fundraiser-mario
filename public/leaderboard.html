@@ -129,6 +129,28 @@ const PST_SHORT = new Intl.DateTimeFormat('en-US', {
 });
 const esc = (s) => String(s ?? '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[c]);
 
+const UTM_BY_MODE = {
+    event:   'https://dataro.io/?utm_source=super_datario&utm_medium=offline&utm_campaign=event-super-datario-global-2026&utm_content=game_cta',
+    digital: 'https://dataro.io/?utm_source=super_datario&utm_medium=referral&utm_campaign=event-super-datario-global-2026&utm_content=game_cta',
+};
+
+async function applyMode() {
+    try {
+        const r = await fetch('/api/admin-settings');
+        if (!r.ok) return;
+        const cfg = await r.json();
+        const mode = cfg.mode === 'digital' ? 'digital' : 'event';
+        const utm = UTM_BY_MODE[mode];
+        document.querySelectorAll('.dataro-badge').forEach(badge => {
+            badge.onclick = (mode === 'digital')
+                ? () => window.open(utm, '_blank', 'noopener')
+                : null;
+            badge.style.cursor = mode === 'digital' ? 'pointer' : '';
+            badge.setAttribute('role', mode === 'digital' ? 'link' : 'img');
+        });
+    } catch { /* leave logo non-interactive on fetch failure */ }
+}
+
 async function load() {
     try {
         const r = await fetch('/api/scores?all=true');
@@ -157,8 +179,10 @@ function render(entries) {
     }).join('');
 }
 
+applyMode();
 load();
 setInterval(load, 30_000);
+setInterval(applyMode, 60_000);   // re-check mode once a minute in case admin flips it
 </script>
 </body>
 </html>
