@@ -11,7 +11,7 @@ import {loadFlagPole} from './entities/FlagPole.js';
 import {loadLetter} from './entities/Letter.js';
 import {loadFireball} from './entities/Fireball.js';
 import {loadDataroPowerup} from './entities/DataroPowerup.js';
-import {loadDonorBusiness, loadDonorCasual, loadDonorFormal} from './entities/Donor.js';
+import {loadDonorBusiness, loadDonorCasual, loadDonorFormal, loadDonorExecutive, loadDonorCreative} from './entities/Donor.js';
 import {loadSpreadzy, loadBouncer, loadDuper, loadSnippy} from './entities/GeneralEnemy.js';
 
 function createPool(size) {
@@ -88,6 +88,10 @@ export async function loadEntities(audioContext) {
             .then(addAs('donor-casual')),
         setup(loadDonorFormal)
             .then(addAs('donor-formal')),
+        setup(loadDonorExecutive)
+            .then(addAs('donor-executive')),
+        setup(loadDonorCreative)
+            .then(addAs('donor-creative')),
         setup(loadSpreadzy)
             .then(addAs('spreadzy')),
         setup(loadBouncer)

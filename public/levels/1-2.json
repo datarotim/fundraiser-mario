@@ -433,7 +433,7 @@
             "pos": [256, 192]
         },
         {
-            "name": "donor-casual",
+            "name": "donor-executive",
             "pos": [272, 192]
         },
         {
@@ -461,7 +461,7 @@
             "pos": [904, 192]
         },
         {
-            "name": "donor-formal",
+            "name": "donor-creative",
             "pos": [944, 192]
         },
         {
@@ -477,7 +477,7 @@
             "pos": [1168, 64]
         },
         {
-            "name": "donor-casual",
+            "name": "donor-executive",
             "pos": [1240, 128]
         },
         {
@@ -489,7 +489,7 @@
             "pos": [1548, 192]
         },
         {
-            "name": "donor-business",
+            "name": "donor-creative",
             "pos": [1608, 192]
         },
         {

@@ -275,6 +275,8 @@ const DONOR_STYLES = {
         tieColor: '#E74C3C',
         skinColor: '#F5CBA7',
         hairColor: '#2C3E50',
+        hairStyle: 'short',
+        earring: false,
         pantsColor: '#2C3E50',
         shoeColor: '#1A1A2E',
         briefcase: true,
@@ -285,6 +287,8 @@ const DONOR_STYLES = {
         tieColor: null,
         skinColor: '#FDEBD0',
         hairColor: '#A0522D',
+        hairStyle: 'short',
+        earring: false,
         pantsColor: '#5D6D7E',
         shoeColor: '#6E2C00',
         briefcase: false,
@@ -295,9 +299,35 @@ const DONOR_STYLES = {
         tieColor: '#6B3FA0',
         skinColor: '#D4A574',
         hairColor: '#1C1C1C',
+        hairStyle: 'short',
+        earring: false,
         pantsColor: '#1B2631',
         shoeColor: '#0B0B0B',
         briefcase: true,
+    },
+    executive: {
+        suitColor: '#34495E',        // navy blazer
+        shirtColor: '#FDEBD0',       // cream blouse
+        tieColor: null,
+        skinColor: '#E8B89B',
+        hairColor: '#2E1A0F',        // dark brown bob
+        hairStyle: 'bob',
+        earring: true,
+        pantsColor: '#34495E',
+        shoeColor: '#1A1A2E',
+        briefcase: true,
+    },
+    creative: {
+        suitColor: '#C0392B',        // burgundy cardigan
+        shirtColor: '#F8E4B7',
+        tieColor: null,
+        skinColor: '#F4C59E',
+        hairColor: '#8B3A2B',        // auburn ponytail
+        hairStyle: 'ponytail',
+        earring: false,
+        pantsColor: '#4A2F1E',       // brown skirt / pants
+        shoeColor: '#3D1F0E',
+        briefcase: false,
     },
 };
 
@@ -373,10 +403,32 @@ function drawDonorCharacter(context, colors, state, lifetime) {
     context.fillStyle = isDisgruntled ? '#FF8C69' : colors.skinColor;
     context.fillRect(4, 0, 8, 5);
 
-    // Hair
+    // Hair — style-dependent silhouette
     context.fillStyle = isDisgruntled ? '#1A0000' : colors.hairColor;
-    context.fillRect(4, 0, 8, 2);
-    context.fillRect(4, 0, 1, 3);
+    if (colors.hairStyle === 'bob') {
+        // Shoulder-length bob: wider crown + hair flowing down both sides of the face
+        context.fillRect(3, 0, 10, 2);
+        context.fillRect(3, 2, 1, 3);
+        context.fillRect(12, 2, 1, 3);
+    } else if (colors.hairStyle === 'ponytail') {
+        // Crown + small sideburns + a tuft trailing behind the head
+        context.fillRect(4, 0, 8, 2);
+        context.fillRect(4, 0, 1, 2);
+        context.fillRect(11, 0, 1, 2);
+        context.fillRect(2, 1, 1, 4);
+        context.fillRect(3, 5, 1, 1);
+    } else {
+        // Default short hair
+        context.fillRect(4, 0, 8, 2);
+        context.fillRect(4, 0, 1, 3);
+    }
+
+    // Earrings (silver dots) — only when not disgruntled
+    if (colors.earring && !isDisgruntled) {
+        context.fillStyle = '#C0C0C0';
+        context.fillRect(3, 3, 1, 1);
+        context.fillRect(12, 3, 1, 1);
+    }
 
     // Eyes
     context.fillStyle = '#000';
@@ -734,4 +786,12 @@ export function loadDonorCasual() {
 
 export function loadDonorFormal() {
     return Promise.resolve(createDonorFactory('formal'));
+}
+
+export function loadDonorExecutive() {
+    return Promise.resolve(createDonorFactory('executive'));
+}
+
+export function loadDonorCreative() {
+    return Promise.resolve(createDonorFactory('creative'));
 }
