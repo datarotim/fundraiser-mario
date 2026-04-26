@@ -82,10 +82,6 @@
             font-variant-numeric: tabular-nums;
             width: 6ch;
         }
-        .lb-table td.col-date {
-            color: var(--gray-light);
-            width: 14ch;
-        }
         .lb-table tr:hover td { background: rgba(155, 111, 208, 0.05); }
 
         .lb-empty {
@@ -111,22 +107,17 @@
             <thead>
                 <tr>
                     <th class="col-rank">#</th>
-                    <th class="col-first">First</th>
-                    <th class="col-last">Last</th>
+                    <th class="col-first">First Name</th>
                     <th class="col-org">Organization</th>
-                    <th class="col-date">Date</th>
                 </tr>
             </thead>
             <tbody id="lb-body">
-                <tr><td colspan="5" class="lb-empty">Loading…</td></tr>
+                <tr><td colspan="3" class="lb-empty">Loading…</td></tr>
             </tbody>
         </table>
     </div>
 
 <script>
-const PST_SHORT = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric',
-});
 const esc = (s) => String(s ?? '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[c]);
 
 const UTM_BY_MODE = {
@@ -164,19 +155,14 @@ function render(entries) {
     const top = [...entries].sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 25);
     const body = document.getElementById('lb-body');
     if (!top.length) {
-        body.innerHTML = '<tr><td colspan="5" class="lb-empty">No scores yet. Be the first!</td></tr>';
+        body.innerHTML = '<tr><td colspan="3" class="lb-empty">No scores yet. Be the first!</td></tr>';
         return;
     }
-    body.innerHTML = top.map((e, i) => {
-        const d = e.time ? PST_SHORT.format(new Date(e.time)) : '';
-        return `<tr>
-            <td class="col-rank">#${i + 1}</td>
-            <td class="col-first">${esc(e.name)}</td>
-            <td class="col-last">${esc(e.lastName)}</td>
-            <td class="col-org">${esc(e.org)}</td>
-            <td class="col-date">${esc(d)}</td>
-        </tr>`;
-    }).join('');
+    body.innerHTML = top.map((e, i) => `<tr>
+        <td class="col-rank">#${i + 1}</td>
+        <td class="col-first">${esc(e.name)}</td>
+        <td class="col-org">${esc(e.org)}</td>
+    </tr>`).join('');
 }
 
 applyMode();
