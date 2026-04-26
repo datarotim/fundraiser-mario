@@ -787,17 +787,15 @@ async function main(canvas) {
         window.location.reload();
     }
 
+    // Esc on keyboard, Start on gamepad (mapped to Escape in Gamepad.js)
     window.addEventListener('keydown', (e) => {
-        if (e.code !== 'Enter' && e.code !== 'Escape') return;
+        if (e.code !== 'Escape') return;
 
         const activeOverlay = document.querySelector('.overlay-screen.active');
 
         if (activeOverlay && activeOverlay.id === 'pause-screen') {
-            // Escape always resumes; Enter activates the focused button
-            if (e.code === 'Escape') {
-                e.preventDefault();
-                resumeGame();
-            }
+            e.preventDefault();
+            resumeGame();
             return;
         }
 
