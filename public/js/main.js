@@ -341,6 +341,47 @@ const DATARO_MESSAGES = [
 ];
 
 /* ============================================
+   HOME SCREEN MUSIC
+   ============================================ */
+
+// The <audio id="splash-music"> element starts muted-autoplay (which
+// browsers allow without a user gesture). On the first interaction we
+// unmute it so the music is audible the instant the user touches the
+// page. We listen during the capture phase so we unmute before any
+// click handler (e.g. PLAY NOW) runs and transitions screens.
+const splashMusic = document.getElementById('splash-music');
+const _splashGestureEvents = ['pointerdown', 'mousedown', 'touchstart', 'keydown', 'click'];
+let _splashMusicHandled = false;
+
+function _activateSplashMusic() {
+    if (_splashMusicHandled) return;
+    _splashMusicHandled = true;
+    if (splashMusic) {
+        splashMusic.muted = false;
+        splashMusic.volume = 0.5;
+        if (splashMusic.paused) splashMusic.play().catch(() => {});
+    }
+    _splashGestureEvents.forEach(evt =>
+        window.removeEventListener(evt, _activateSplashMusic, true));
+}
+
+function stopSplashMusic() {
+    if (splashMusic) {
+        splashMusic.pause();
+        splashMusic.currentTime = 0;
+    }
+    _splashMusicHandled = true;
+    _splashGestureEvents.forEach(evt =>
+        window.removeEventListener(evt, _activateSplashMusic, true));
+}
+
+// Kick off muted autoplay (browsers permit muted playback without a gesture).
+if (splashMusic) {
+    splashMusic.volume = 0.5;
+    splashMusic.play().catch(() => { /* fine - will start on first gesture */ });
+}
+
+/* ============================================
    GAME-OVER IDLE TIMEOUT
    ============================================ */
 
@@ -818,6 +859,11 @@ fetch('/api/admin-settings').then(r => r.ok ? r.json() : null).then(cfg => {
 initParticles();
 startTaglineRotation();
 
+// Unmute the muted-autoplay home screen music on the first user gesture
+// (capture phase, so it runs before any click handler that transitions screens).
+_splashGestureEvents.forEach(evt =>
+    window.addEventListener(evt, _activateSplashMusic, true));
+
 // Start listening for USB gamepads (dispatches synthetic keyboard events)
 startGamepad();
 
@@ -881,6 +927,7 @@ document.getElementById('signup-form').addEventListener('submit', (e) => {
 // PHASE 3: Tutorial -> Game
 document.getElementById('btn-go').addEventListener('click', () => {
     hideAllOverlays();
+    stopSplashMusic();
     setupTouchControls();
     main(canvas);
 });
