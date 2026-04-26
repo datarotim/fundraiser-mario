@@ -2,12 +2,14 @@ import TileResolver from './TileResolver.js';
 import {brick} from './tiles/brick.js';
 import {chance} from './tiles/chance.js';
 import {coin} from './tiles/coin.js';
+import {datro} from './tiles/datro.js';
 import {ground} from './tiles/ground.js';
 
 const handlers = {
     brick,
     chance,
     coin,
+    datro,
     ground,
 }
 
