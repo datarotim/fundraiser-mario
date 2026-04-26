@@ -757,6 +757,61 @@ async function main(canvas) {
 
     timer.start();
 
+    /* ----------------------------------------
+       PAUSE MENU
+       ---------------------------------------- */
+
+    function getCurrentLevel() {
+        const scene = sceneRunner.scenes[sceneRunner.sceneIndex];
+        return (scene instanceof Level) ? scene : null;
+    }
+
+    function pauseGame() {
+        if (timer.paused) return;
+        timer.pause();
+        const level = getCurrentLevel();
+        if (level) level.music.pause();
+        showScreen('pause-screen');
+    }
+
+    function resumeGame() {
+        if (!timer.paused) return;
+        hideAllOverlays();
+        const level = getCurrentLevel();
+        // HTML <audio> retains currentTime when paused, so playTheme resumes it
+        if (level) level.music.playTheme();
+        timer.resume();
+    }
+
+    function exitToSplash() {
+        window.location.reload();
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (e.code !== 'Enter' && e.code !== 'Escape') return;
+
+        const activeOverlay = document.querySelector('.overlay-screen.active');
+
+        if (activeOverlay && activeOverlay.id === 'pause-screen') {
+            // Escape always resumes; Enter activates the focused button
+            if (e.code === 'Escape') {
+                e.preventDefault();
+                resumeGame();
+            }
+            return;
+        }
+
+        // Any other overlay (splash, signup, tutorial, gameover) — leave alone
+        if (activeOverlay) return;
+
+        // No overlay = game is running → pause
+        e.preventDefault();
+        pauseGame();
+    });
+
+    document.getElementById('btn-resume').addEventListener('click', resumeGame);
+    document.getElementById('btn-exit').addEventListener('click', exitToSplash);
+
     // Show opening narrative crawl before first level
     const openingLines = pickRandom(OPENING_NARRATIVES);
     const narrativeScene = new NarrativeScene(font, openingLines, {

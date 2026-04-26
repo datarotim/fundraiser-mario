@@ -225,6 +225,56 @@ html, body {
 }
 
 /* ============================================
+   PAUSE MENU
+   ============================================ */
+
+.pause-overlay {
+    background: rgba(13, 7, 24, 0.82);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    justify-content: center;
+}
+
+.pause-content {
+    background: var(--surface);
+    border: 1px solid rgba(155, 111, 208, 0.35);
+    border-radius: var(--radius);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 60px var(--dataro-purple-glow);
+    padding: 36px 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+    min-width: 320px;
+    max-width: 90vw;
+}
+
+.pause-title {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--white);
+    text-shadow: 0 2px 20px var(--dataro-purple-glow);
+}
+
+.pause-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    align-items: center;
+}
+
+.pause-hint {
+    font-size: 0.8rem;
+    color: var(--gray);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* ============================================
    SPLASH SCREEN
    ============================================ */
 
