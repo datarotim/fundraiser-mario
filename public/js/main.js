@@ -341,6 +341,41 @@ const DATARO_MESSAGES = [
 ];
 
 /* ============================================
+   HOME SCREEN MUSIC
+   ============================================ */
+
+// Plays through splash / signup / tutorial overlays. Browsers block
+// autoplay without a user gesture, so we attempt play() on load and
+// also retry on the first input event.
+const splashMusic = new Audio('/audio/music/overworld.ogg');
+splashMusic.loop = true;
+splashMusic.volume = 0.5;
+let _splashMusicPlaying = false;
+const _splashGestureEvents = ['click', 'keydown', 'touchstart', 'pointerdown'];
+
+function tryStartSplashMusic() {
+    if (_splashMusicPlaying) return;
+    const p = splashMusic.play();
+    if (p && typeof p.then === 'function') {
+        p.then(() => {
+            _splashMusicPlaying = true;
+            _splashGestureEvents.forEach(evt =>
+                window.removeEventListener(evt, tryStartSplashMusic));
+        }).catch(() => { /* autoplay blocked - retry on next gesture */ });
+    } else {
+        _splashMusicPlaying = true;
+    }
+}
+
+function stopSplashMusic() {
+    splashMusic.pause();
+    splashMusic.currentTime = 0;
+    _splashMusicPlaying = false;
+    _splashGestureEvents.forEach(evt =>
+        window.removeEventListener(evt, tryStartSplashMusic));
+}
+
+/* ============================================
    GAME-OVER IDLE TIMEOUT
    ============================================ */
 
@@ -818,6 +853,11 @@ fetch('/api/admin-settings').then(r => r.ok ? r.json() : null).then(cfg => {
 initParticles();
 startTaglineRotation();
 
+// Start home screen music (autoplay if allowed, otherwise on first gesture)
+tryStartSplashMusic();
+_splashGestureEvents.forEach(evt =>
+    window.addEventListener(evt, tryStartSplashMusic));
+
 // Start listening for USB gamepads (dispatches synthetic keyboard events)
 startGamepad();
 
@@ -881,6 +921,7 @@ document.getElementById('signup-form').addEventListener('submit', (e) => {
 // PHASE 3: Tutorial -> Game
 document.getElementById('btn-go').addEventListener('click', () => {
     hideAllOverlays();
+    stopSplashMusic();
     setupTouchControls();
     main(canvas);
 });
