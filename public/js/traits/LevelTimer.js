@@ -8,9 +8,9 @@ export default class LevelTimer extends Trait {
 
     constructor() {
         super();
-        this.totalTime = 150;
+        this.totalTime = 113;
         this.currentTime = this.totalTime;
-        this.hurryTime = 100;
+        this.hurryTime = 28;
         this.hurryEmitted = null;
     }
 
