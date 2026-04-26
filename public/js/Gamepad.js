@@ -4,10 +4,10 @@
 // narrative "any key" skip) works unchanged.
 
 const BUTTON_MAP = {
-    0: { code: 'KeyZ',      key: 'z' },          // B  — throw letter
+    0: { code: 'KeyZ',      key: 'z' },          // B  — throw letter (legacy)
     1: { code: 'ShiftLeft', key: 'Shift' },      // A  — run (also counts as "any key")
     2: { code: 'Space',     key: ' ' },          // Y  — jump
-    3: { code: 'ShiftLeft', key: 'Shift' },      // X  — run
+    3: { code: 'KeyZ',      key: 'z' },          // X  — throw letter
     8: { code: 'Enter',     key: 'Enter' },      // Select — confirm
     9: { code: 'Escape',    key: 'Escape' },     // Start  — pause
     12: { code: 'ArrowUp',    key: 'ArrowUp' },

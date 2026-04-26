@@ -758,8 +758,28 @@ html, body {
     flex-wrap: wrap;
 }
 
-.btn-y, .btn-b, .btn-a {
-    background: var(--dataro-purple-light);
+/* SNES controller button colors */
+.btn-y {
+    background: #2ecc71;
+    border-color: #27ae60;
+    color: var(--darker);
+}
+
+.btn-x {
+    background: #3498db;
+    border-color: #2980b9;
+    color: var(--darker);
+}
+
+.btn-a {
+    background: #e74c3c;
+    border-color: #c0392b;
+    color: var(--darker);
+}
+
+.btn-b {
+    background: #f1c40f;
+    border-color: #d4ac0d;
     color: var(--darker);
 }
 
