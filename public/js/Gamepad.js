@@ -8,8 +8,8 @@ const BUTTON_MAP = {
     1: { code: 'ShiftLeft', key: 'Shift' },      // A  — run (also counts as "any key")
     2: { code: 'Space',     key: ' ' },          // Y  — jump
     3: { code: 'ShiftLeft', key: 'Shift' },      // X  — run
-    8: { code: 'Enter',     key: 'Enter' },      // Select
-    9: { code: 'Enter',     key: 'Enter' },      // Start
+    8: { code: 'Enter',     key: 'Enter' },      // Select — confirm
+    9: { code: 'Escape',    key: 'Escape' },     // Start  — pause
     12: { code: 'ArrowUp',    key: 'ArrowUp' },
     13: { code: 'ArrowDown',  key: 'ArrowDown' },
     14: { code: 'ArrowLeft',  key: 'ArrowLeft' },
