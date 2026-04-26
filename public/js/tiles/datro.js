@@ -1,7 +1,6 @@
 import {Sides} from '../Entity.js';
 import Player from "../traits/Player.js";
-
-let powerupSpawned = false;
+import {isDataroRevealed} from '../entities/DataroPowerup.js';
 
 function handleX({entity, match}) {
     if (entity.vel.x > 0) {
@@ -28,8 +27,7 @@ function handleY({entity, match, resolver, gameContext, level}) {
             const grid = resolver.matrix;
             grid.delete(match.indexX, match.indexY);
 
-            if (!powerupSpawned) {
-                powerupSpawned = true;
+            if (!isDataroRevealed()) {
                 const powerup = gameContext.entityFactory['dataro-powerup']();
                 powerup.pos.set(match.x1, match.y1 - 16);
                 powerup.vel.y = -100;
