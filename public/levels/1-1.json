@@ -265,6 +265,10 @@
             "pos": [840, 192]
         },
         {
+            "name": "duper",
+            "pos": [1000, 192]
+        },
+        {
             "name": "donor-creative",
             "pos": [1200, 192]
         },
@@ -305,6 +309,10 @@
             "pos": [1848, 192]
         },
         {
+            "name": "bouncer",
+            "pos": [1920, 192]
+        },
+        {
             "name": "donor-business",
             "pos": [2008, 192]
         },
@@ -327,6 +335,10 @@
         {
             "name": "donor-business",
             "pos": [2600, 192]
+        },
+        {
+            "name": "snippy",
+            "pos": [2680, 192]
         },
         {
             "name": "donor-formal",
