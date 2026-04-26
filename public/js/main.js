@@ -766,16 +766,70 @@ async function main(canvas) {
         return (scene instanceof Level) ? scene : null;
     }
 
+    // Reuse the splash <audio> element for pause-menu ambience so we don't
+    // need to ship a second copy of the overworld track.
+    const pauseChime = new Audio('/audio/fx/pause.ogg');
+    pauseChime.volume = 0.6;
+
+    function startPauseAudio() {
+        // Classic Mario pause chime (one-shot)
+        try {
+            pauseChime.currentTime = 0;
+            pauseChime.play().catch(() => {});
+        } catch { /* ok */ }
+        // Quiet looped overworld music for attract-mode ambience
+        if (splashMusic) {
+            splashMusic.muted = false;
+            splashMusic.volume = 0.35;
+            splashMusic.play().catch(() => {});
+        }
+    }
+
+    function stopPauseAudio() {
+        if (splashMusic) {
+            splashMusic.pause();
+            splashMusic.currentTime = 0;
+        }
+    }
+
+    let pauseMessageInterval = null;
+    function startPauseMessageRotation() {
+        const el = document.getElementById('pause-marketing-msg');
+        if (!el) return;
+        let idx = Math.floor(Math.random() * DATARO_MESSAGES.length);
+        el.textContent = DATARO_MESSAGES[idx];
+        el.style.opacity = '1';
+        pauseMessageInterval = setInterval(() => {
+            idx = (idx + 1) % DATARO_MESSAGES.length;
+            el.style.opacity = '0';
+            setTimeout(() => {
+                el.textContent = DATARO_MESSAGES[idx];
+                el.style.opacity = '1';
+            }, 350);
+        }, 4500);
+    }
+
+    function stopPauseMessageRotation() {
+        if (pauseMessageInterval !== null) {
+            clearInterval(pauseMessageInterval);
+            pauseMessageInterval = null;
+        }
+    }
+
     function pauseGame() {
         if (timer.paused) return;
         timer.pause();
         const level = getCurrentLevel();
         if (level) level.music.pause();
         showScreen('pause-screen');
+        startPauseAudio();
+        startPauseMessageRotation();
     }
 
     function resumeGame() {
         if (!timer.paused) return;
+        stopPauseMessageRotation();
+        stopPauseAudio();
         hideAllOverlays();
         const level = getCurrentLevel();
         // HTML <audio> retains currentTime when paused, so playTheme resumes it
@@ -886,6 +940,8 @@ function applyAdminConfig(cfg) {
     const utm = UTM_BY_MODE[mode];
     const dataroBtn = document.getElementById('btn-dataro');
     if (dataroBtn) dataroBtn.href = utm;
+    const pauseDataroBtn = document.getElementById('btn-pause-dataro');
+    if (pauseDataroBtn) pauseDataroBtn.href = utm;
     const prizePill = document.querySelector('.conf-badge');
     if (prizePill) prizePill.style.display = mode === 'digital' ? 'none' : '';
 
