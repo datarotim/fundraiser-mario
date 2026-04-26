@@ -190,14 +190,27 @@
     <!-- Pause Menu (in-game) -->
     <div id="pause-screen" class="overlay-screen pause-overlay">
         <div class="pause-content">
+            <div class="dataro-badge small pause-badge">
+                <img src="/images/dataro-logo.png" alt="Dataro" class="dataro-logo-img" />
+            </div>
             <h2 class="pause-title">Paused</h2>
+            <p class="pause-marketing" id="pause-marketing-msg">Every donor counts. With Dataro AI, you never miss one.</p>
+            <div class="pause-stats">
+                <div class="pause-stat"><span class="pause-stat-value">2&times;</span><span class="pause-stat-label">Response&nbsp;Rate</span></div>
+                <div class="pause-stat"><span class="pause-stat-value">AI</span><span class="pause-stat-label">Powered</span></div>
+                <div class="pause-stat"><span class="pause-stat-value">500+</span><span class="pause-stat-label">Nonprofits</span></div>
+            </div>
             <div class="pause-buttons">
                 <button class="cta-button" id="btn-resume">
                     CONTINUE
                     <span class="btn-arrow">→</span>
                 </button>
-                <button class="cta-button secondary" id="btn-exit">
-                    EXIT GAME
+                <a class="cta-button secondary" id="btn-pause-dataro" href="https://dataro.io" target="_blank" rel="noopener">
+                    DISCOVER DATARO AI
+                    <span class="btn-arrow">→</span>
+                </a>
+                <button class="cta-button ghost" id="btn-exit">
+                    QUIT GAME
                 </button>
             </div>
             <p class="pause-hint">ESC or START to resume</p>
