@@ -1,5 +1,6 @@
 import {Sides} from '../Entity.js';
 import Player from "../traits/Player.js";
+import {isDataroRevealed} from '../entities/DataroPowerup.js';
 
 function handleX({entity, match}) {
     if (entity.vel.x > 0) {
@@ -13,7 +14,7 @@ function handleX({entity, match}) {
     }
 }
 
-function handleY({entity, match, resolver}) {
+function handleY({entity, match, resolver, gameContext, level}) {
     if (entity.vel.y > 0) {
         if (entity.bounds.bottom > match.y1) {
             entity.obstruct(Sides.BOTTOM, match);
@@ -25,6 +26,13 @@ function handleY({entity, match, resolver}) {
 
             const grid = resolver.matrix;
             grid.delete(match.indexX, match.indexY);
+
+            if (!isDataroRevealed()) {
+                const powerup = gameContext.entityFactory['dataro-powerup']();
+                powerup.pos.set(match.x1, match.y1 - 16);
+                powerup.vel.y = -100;
+                level.entities.add(powerup);
+            }
         }
 
         if (entity.bounds.top < match.y2) {
@@ -33,4 +41,4 @@ function handleY({entity, match, resolver}) {
     }
 }
 
-export const chance = [handleX, handleY];
+export const datro = [handleX, handleY];
