@@ -31,9 +31,7 @@ import { startGamepad } from './Gamepad.js';
 
 const playerData = {
     name: '',
-    email: '',
     org: '',
-    wantsUpdates: false,
 };
 
 /* ============================================
@@ -105,9 +103,7 @@ async function addToLeaderboard(name, score, donors, world, lettersSent, respons
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 name,
-                lastName: playerData.lastName || '',
                 org: playerData.org || '',
-                email: playerData.email || '',
                 score,
                 donors,
                 world,
@@ -167,10 +163,13 @@ function renderLeaderboard(currentPlayerName, currentScore, listId = 'leaderboar
         const isMe = entry.name === currentPlayerName && entry.score === currentScore;
         const div = document.createElement('div');
         div.className = `lb-entry${isMe ? ' highlight' : ''}`;
+        const name = entry.name || 'Anonymous';
+        const score = Number(entry.score) || 0;
+        const org = entry.org ? ` <span class="lb-org">${escapeHtml(truncate(entry.org, 24))}</span>` : '';
         div.innerHTML = `
             <span class="lb-rank">#${i + 1}</span>
-            <span class="lb-name">${escapeHtml(truncate(entry.name, 20))}</span>
-            <span class="lb-score">$${entry.score.toLocaleString()}</span>
+            <span class="lb-name">${escapeHtml(truncate(name, 20))}</span>${org}
+            <span class="lb-score">$${score.toLocaleString()}</span>
         `;
         list.appendChild(div);
     });
@@ -890,7 +889,6 @@ const canvas = document.getElementById('screen');
 
 const ADMIN_DEFAULTS = {
     mode: 'event',
-    fields: { firstName: true, lastName: false, org: false, email: false },
     aspectRatio: '16-9',
 };
 
@@ -904,7 +902,6 @@ function readCachedAdminConfig() {
         const raw = JSON.parse(localStorage.getItem('dataro_admin_config') || '{}');
         return {
             mode: raw.mode === 'digital' ? 'digital' : 'event',
-            fields: { ...ADMIN_DEFAULTS.fields, ...(raw.fields || {}) },
             aspectRatio: raw.aspectRatio === '4-3' ? '4-3' : '16-9',
         };
     } catch { return { ...ADMIN_DEFAULTS }; }
@@ -921,19 +918,6 @@ function applyAdminConfig(cfg) {
         canvas.width = 432;
         canvas.className = 'aspect-16-9';
     }
-    const show = (id, on) => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = on ? '' : 'none';
-    };
-    show('group-firstname', cfg.fields.firstName);
-    show('group-lastname',  cfg.fields.lastName);
-    show('group-org',       cfg.fields.org);
-    show('group-email',     cfg.fields.email);
-    // Only the first-name and email inputs enforce required when visible
-    const nameEl  = document.getElementById('player-name');
-    const emailEl = document.getElementById('player-email');
-    if (nameEl)  nameEl.required  = !!cfg.fields.firstName;
-    if (emailEl) emailEl.required = !!cfg.fields.email;
 
     // Mode-driven behaviour
     const mode = cfg.mode === 'digital' ? 'digital' : 'event';
@@ -979,18 +963,9 @@ startGamepad();
 // Pre-fetch server leaderboard, then re-render splash top 5 with fresh data
 fetchLeaderboard().then(() => renderLeaderboard('', 0, 'splash-leaderboard-list', 5));
 
-// PHASE 1: Splash -> Signup (skip sign-up entirely when no fields are enabled)
+// PHASE 1: Splash -> Signup
 document.getElementById('btn-play').addEventListener('click', () => {
-    const anyField = Object.values(__ADMIN.fields).some(Boolean);
-    if (anyField) {
-        showScreen('signup-screen');
-    } else {
-        playerData.name = 'PLAYER';
-        playerData.lastName = '';
-        playerData.org = '';
-        playerData.email = '';
-        showScreen('tutorial-screen');
-    }
+    showScreen('signup-screen');
 });
 
 // PHASE 2: Signup -> Tutorial
@@ -998,32 +973,21 @@ document.getElementById('signup-form').addEventListener('submit', (e) => {
     e.preventDefault();
 
     const first = document.getElementById('player-name').value.trim();
-    const last  = document.getElementById('player-lastname').value.trim();
     const org   = document.getElementById('player-org').value.trim();
-    const email = document.getElementById('player-email').value.trim();
 
-    // Respect admin toggles: any enabled field gets required-style validation
-    if (__ADMIN.fields.firstName && !first) {
+    if (!first) {
         document.getElementById('player-name').focus();
         return;
     }
-    if (__ADMIN.fields.email && !email) {
-        document.getElementById('player-email').focus();
-        return;
-    }
 
-    playerData.name = first || 'PLAYER';
-    playerData.lastName = last;
+    playerData.name = first;
     playerData.org = org;
-    playerData.email = email;
 
     try {
         const leads = JSON.parse(localStorage.getItem('dataro_leads') || '[]');
         leads.push({
             name: playerData.name,
-            lastName: playerData.lastName,
             org: playerData.org,
-            email: playerData.email,
             timestamp: new Date().toISOString(),
             plays: 1,
         });
@@ -1096,5 +1060,6 @@ try {
     if (leads.length > 0) {
         const last = leads[leads.length - 1];
         if (last.name) document.getElementById('player-name').value = last.name;
+        if (last.org)  document.getElementById('player-org').value  = last.org;
     }
 } catch { /* ok */ }

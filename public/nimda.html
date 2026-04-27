@@ -113,21 +113,10 @@
 
     <div class="card">
         <h2>Mode <span id="mode-status" class="status"></span></h2>
-        <div class="sub">EVENT = booth defaults, "Top Score Wins a Prize!" pill visible, offline UTM. DIGITAL = all fields collected, no prize pill, referral UTM.</div>
+        <div class="sub">EVENT = booth mode, "Top Score Wins a Prize!" pill visible, offline UTM. DIGITAL = web mode, no prize pill, referral UTM.</div>
         <div class="toggle-group">
             <div class="toggle-row"><input type="radio" name="mode" id="m-event" value="event"><label for="m-event">Event</label></div>
             <div class="toggle-row"><input type="radio" name="mode" id="m-digital" value="digital"><label for="m-digital">Digital</label></div>
-        </div>
-    </div>
-
-    <div class="card">
-        <h2>Sign-up fields <span id="fields-status" class="status"></span></h2>
-        <div class="sub">Choose which info the "Ready to play?" screen collects. All off = skip sign-up and go straight to gameplay.</div>
-        <div class="toggle-group">
-            <div class="toggle-row"><input type="checkbox" id="f-firstName"><label for="f-firstName">First Name</label></div>
-            <div class="toggle-row"><input type="checkbox" id="f-lastName"><label for="f-lastName">Last Name</label></div>
-            <div class="toggle-row"><input type="checkbox" id="f-org"><label for="f-org">Organization</label></div>
-            <div class="toggle-row"><input type="checkbox" id="f-email"><label for="f-email">Email</label></div>
         </div>
     </div>
 
@@ -161,9 +150,7 @@
                         <th>Score</th>
                         <th>World</th>
                         <th>First Name</th>
-                        <th>Last Name</th>
                         <th>Organization</th>
-                        <th>Email</th>
                     </tr>
                 </thead>
                 <tbody id="plays-body"></tbody>
@@ -187,11 +174,6 @@ function showStatus(id, text, cls) {
     if (text) setTimeout(() => { if (el.textContent === text) { el.textContent = ''; el.className = 'status'; } }, 2500);
 }
 
-const MODE_FIELD_DEFAULTS = {
-    event:   { firstName: true,  lastName: false, org: false, email: false },
-    digital: { firstName: true,  lastName: true,  org: true,  email: true  },
-};
-
 async function loadConfig() {
     try {
         const resp = await fetch('/api/admin-settings');
@@ -199,25 +181,15 @@ async function loadConfig() {
         const cfg = await resp.json();
         const mode = cfg.mode === 'digital' ? 'digital' : 'event';
         document.getElementById(mode === 'digital' ? 'm-digital' : 'm-event').checked = true;
-        document.getElementById('f-firstName').checked = !!cfg.fields.firstName;
-        document.getElementById('f-lastName').checked  = !!cfg.fields.lastName;
-        document.getElementById('f-org').checked       = !!cfg.fields.org;
-        document.getElementById('f-email').checked     = !!cfg.fields.email;
         document.getElementById(cfg.aspectRatio === '4-3' ? 'a-4-3' : 'a-16-9').checked = true;
     } catch (err) {
-        showStatus('fields-status', 'Load failed', 'error');
+        showStatus('mode-status', 'Load failed', 'error');
     }
 }
 
 async function saveConfig(statusEl) {
     const cfg = {
         mode: document.querySelector('input[name=mode]:checked')?.value || 'event',
-        fields: {
-            firstName: document.getElementById('f-firstName').checked,
-            lastName:  document.getElementById('f-lastName').checked,
-            org:       document.getElementById('f-org').checked,
-            email:     document.getElementById('f-email').checked,
-        },
         aspectRatio: document.querySelector('input[name=aspect]:checked')?.value || '16-9',
     };
     try {
@@ -234,19 +206,7 @@ async function saveConfig(statusEl) {
 }
 
 document.querySelectorAll('input[name=mode]').forEach(el => {
-    el.addEventListener('change', () => {
-        const mode = document.querySelector('input[name=mode]:checked')?.value || 'event';
-        const defaults = MODE_FIELD_DEFAULTS[mode];
-        document.getElementById('f-firstName').checked = defaults.firstName;
-        document.getElementById('f-lastName').checked  = defaults.lastName;
-        document.getElementById('f-org').checked       = defaults.org;
-        document.getElementById('f-email').checked     = defaults.email;
-        saveConfig('mode-status');
-    });
-});
-
-['f-firstName', 'f-lastName', 'f-org', 'f-email'].forEach(id => {
-    document.getElementById(id).addEventListener('change', () => saveConfig('fields-status'));
+    el.addEventListener('change', () => saveConfig('mode-status'));
 });
 document.querySelectorAll('input[name=aspect]').forEach(el => {
     el.addEventListener('change', () => saveConfig('aspect-status'));
@@ -271,15 +231,12 @@ const CSV_COLUMNS = [
     { key: 'timePST',   label: 'Time (PST)' },
     { key: 'dailyRank', label: 'Daily Rank' },
     { key: 'name',      label: 'First Name' },
-    { key: 'lastName',  label: 'Last Name' },
     { key: 'org',       label: 'Organization' },
-    { key: 'email',     label: 'Email' },
     { key: 'score',     label: 'Score' },
     { key: 'world',     label: 'World' },
     { key: 'donors',    label: 'Donors' },
     { key: 'lettersSent',  label: 'Letters Sent' },
     { key: 'responseRate', label: 'Response Rate' },
-    { key: 'wantsUpdates', label: 'Wants Updates' },
     { key: 'time',      label: 'Timestamp (epoch ms)' },
 ];
 
@@ -313,15 +270,12 @@ function buildCsv(entries) {
             timePST:   PST_FMT_TIME.format(d),
             dailyRank: rankMap.get(e) || '',
             name:      e.name || '',
-            lastName:  e.lastName || '',
             org:       e.org || '',
-            email:     e.email || '',
             score:     e.score ?? '',
             world:     e.world ?? '',
             donors:    e.donors ?? '',
             lettersSent:  e.lettersSent ?? '',
             responseRate: e.responseRate ?? '',
-            wantsUpdates: e.wantsUpdates ?? '',
             time:      e.time ?? '',
         };
         return CSV_COLUMNS.map(c => csvEscape(row[c.key])).join(',');
@@ -382,7 +336,7 @@ document.getElementById('reset-table').addEventListener('click', async (e) => {
 function renderPlays(entries) {
     const body = document.getElementById('plays-body');
     if (!entries.length) {
-        body.innerHTML = '<tr><td colspan="8" class="empty">No plays yet.</td></tr>';
+        body.innerHTML = '<tr><td colspan="6" class="empty">No plays yet.</td></tr>';
         return;
     }
 
@@ -411,9 +365,7 @@ function renderPlays(entries) {
             <td class="score">$${(e.score || 0).toLocaleString()}</td>
             <td>${esc(e.world || '')}</td>
             <td>${esc(e.name || '')}</td>
-            <td>${esc(e.lastName || '')}</td>
             <td>${esc(e.org || '')}</td>
-            <td>${esc(e.email || '')}</td>
         </tr>`;
     }).join('');
 }

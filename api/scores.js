@@ -62,7 +62,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-        const { name, lastName, score, donors, world, email, org, lettersSent, responseRate, wantsUpdates } = req.body || {};
+        const { name, score, donors, world, org, lettersSent, responseRate } = req.body || {};
 
         if (typeof score !== 'number' || !name) {
             return res.status(400).json({ error: 'name and score are required' });
@@ -71,15 +71,12 @@ export default async function handler(req, res) {
         const allData = await readLeaderboard();
         allData.push({
             name,
-            lastName: lastName || '',
             score,
             donors: donors || 0,
             world: world || 1,
-            email: email || '',
             org: org || '',
             lettersSent: lettersSent || 0,
             responseRate: responseRate || 0,
-            wantsUpdates: wantsUpdates || false,
             time: Date.now(),
         });
         allData.sort((a, b) => b.score - a.score);
