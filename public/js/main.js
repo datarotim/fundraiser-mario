@@ -128,7 +128,7 @@ async function addToLeaderboard(name, score, donors, world, lettersSent, respons
 
 async function fetchLeaderboard() {
     try {
-        const resp = await fetch('/api/scores?all=true');
+        const resp = await fetch('/api/scores');
         if (resp.ok) {
             const data = await resp.json();
             _leaderboardCache = data.leaderboard || [];
