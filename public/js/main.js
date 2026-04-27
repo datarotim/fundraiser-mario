@@ -688,6 +688,11 @@ async function main(canvas) {
                 const bottomOfScreen = level.camera.pos.y + level.camera.size.y;
                 if (mario.pos.y > bottomOfScreen) {
                     pitDeathHandled = true;
+                    if (mario.powered) {
+                        mario.powered = false;
+                        mario.size.set(14, 16);
+                    }
+                    mario.invincibleTimer = 0;
                     killable.kill();
                     mario.finalize();
                 }
@@ -749,6 +754,11 @@ async function main(canvas) {
                     const bottom = level.camera.pos.y + level.camera.size.y;
                     if (player.pos.y > bottom) {
                         state.pitDeath = true;
+                        if (player.powered) {
+                            player.powered = false;
+                            player.size.set(14, 16);
+                        }
+                        player.invincibleTimer = 0;
                         killable.kill();
                         player.finalize();
                     }
@@ -779,6 +789,8 @@ async function main(canvas) {
 
                     const delay = state.pitDeath ? 2000 : 3000;
                     setTimeout(async () => {
+                        if (bothDeadResolved) return;
+
                         restorePlayer(player, state.origPhysics);
 
                         const partnerAlive = !partner.traits.get(Killable).dead;
