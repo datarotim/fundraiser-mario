@@ -3,6 +3,7 @@ import MusicController from './MusicController.js';
 import EntityCollider from './EntityCollider.js';
 import Scene from './Scene.js';
 import TileCollider from './TileCollider.js';
+import Killable from './traits/Killable.js';
 import { clamp } from './math.js';
 import { findPlayers } from './player.js';
 
@@ -10,11 +11,43 @@ function focusPlayer(level) {
     if (level.freezeCamera) {
         return;
     }
+
+    const allPlayers = [...findPlayers(level.entities)];
+    const alivePlayers = allPlayers.filter(p => !p.traits.get(Killable).dead);
+
+    if (alivePlayers.length === 0) return;
+
+    let target;
+    if (alivePlayers.length >= 2) {
+        alivePlayers.sort((a, b) => a.pos.x - b.pos.x);
+        target = alivePlayers[0];
+    } else {
+        target = alivePlayers[0];
+    }
+
+    level.camera.pos.x = clamp(
+        target.pos.x - 100,
+        level.camera.min.x,
+        level.camera.max.x - level.camera.size.x);
+
+    if (level.coopMode) {
+        level.camera.min.x = Math.max(level.camera.min.x, level.camera.pos.x);
+    }
+}
+
+function clampPlayersToCamera(level) {
+    const rightEdge = level.camera.pos.x + level.camera.size.x - 16;
+    const leftEdge = level.camera.pos.x;
     for (const player of findPlayers(level.entities)) {
-        level.camera.pos.x = clamp(
-            player.pos.x - 100,
-            level.camera.min.x,
-            level.camera.max.x - level.camera.size.x);
+        if (player.traits.get(Killable).dead) continue;
+        if (player.pos.x > rightEdge) {
+            player.pos.x = rightEdge;
+            if (player.vel.x > 0) player.vel.x = 0;
+        }
+        if (player.pos.x < leftEdge) {
+            player.pos.x = leftEdge;
+            if (player.vel.x < 0) player.vel.x = 0;
+        }
     }
 }
 
@@ -42,6 +75,7 @@ export default class Level extends Scene {
         this.gravity = 1500;
         this.totalTime = 0;
         this.freezeCamera = false;
+        this.coopMode = false;
 
         this.camera = new Camera();
 
@@ -71,6 +105,10 @@ export default class Level extends Scene {
         });
 
         focusPlayer(this);
+
+        if (this.coopMode) {
+            clampPlayersToCamera(this);
+        }
 
         this.totalTime += gameContext.deltaTime;
     }

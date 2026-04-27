@@ -85,6 +85,12 @@
     <div id="tutorial-screen" class="overlay-screen">
         <div class="tutorial-content">
             <h2 class="tutorial-title">How to Play</h2>
+
+            <div class="mode-toggle">
+                <button class="mode-btn active" id="mode-1p">1 PLAYER</button>
+                <button class="mode-btn" id="mode-2p">TEAM MODE<span class="mode-subtitle">fundraising is a team sport</span></button>
+            </div>
+
             <p class="tutorial-subtitle">Play with keyboard or controller</p>
 
             <div class="tutorial-controls-group">
@@ -121,6 +127,40 @@
                 </div>
             </div>
 
+            <div id="p2-controls-info" class="tutorial-controls-group" style="display:none">
+                <h3 class="controls-heading">⌨️ Player 2 Keyboard</h3>
+                <div class="tutorial-controls">
+                    <div class="control-item big-control">
+                        <div class="key-visual">
+                            <span class="key arrow-key">A</span>
+                            <span class="key arrow-key">D</span>
+                        </div>
+                        <span class="control-label">A/D = Move</span>
+                    </div>
+                    <div class="control-divider">+</div>
+                    <div class="control-item big-control">
+                        <div class="key-visual">
+                            <span class="key arrow-key">E</span>
+                        </div>
+                        <span class="control-label">E = Jump</span>
+                    </div>
+                    <div class="control-divider">+</div>
+                    <div class="control-item big-control">
+                        <div class="key-visual">
+                            <span class="key arrow-key">F</span>
+                        </div>
+                        <span class="control-label">F = Letters</span>
+                    </div>
+                    <div class="control-divider">+</div>
+                    <div class="control-item big-control">
+                        <div class="key-visual">
+                            <span class="key arrow-key">Q</span>
+                        </div>
+                        <span class="control-label">Q = Run</span>
+                    </div>
+                </div>
+            </div>
+
             <div class="tutorial-controls-group">
                 <h3 class="controls-heading">🎮 Controller</h3>
                 <div class="tutorial-controls">
@@ -152,6 +192,7 @@
                         <span class="control-label">A = Run</span>
                     </div>
                 </div>
+                <p class="controller-detect" id="controller-detect">No controllers detected</p>
             </div>
 
             <div class="tutorial-goal">

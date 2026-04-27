@@ -16,17 +16,7 @@ import {deactivateDataro} from './DataroPowerup.js';
 const SLOW_DRAG = 1/1000;
 const FAST_DRAG = 1/5000;
 
-export function loadMario(audioContext) {
-    return Promise.all([
-        loadSpriteSheet('mario'),
-        loadAudioBoard('mario', audioContext),
-    ])
-    .then(([sprite, audio]) => {
-        return createMarioFactory(sprite, audio);
-    });
-}
-
-function createMarioFactory(sprite, audio) {
+export function createPlayerFactory(sprite, audio) {
     const runAnim = sprite.animations.get('run');
     const runLargeAnim = sprite.animations.get('run-large');
     const climbAnim = sprite.animations.get('climb');
@@ -81,11 +71,11 @@ function createMarioFactory(sprite, audio) {
         this.traits.get(Go).dragFactor = turboOn ? FAST_DRAG : SLOW_DRAG;
     }
 
-    function drawMario(context) {
+    function drawPlayer(context) {
         sprite.draw(routeFrame(this), context, 0, 0, getHeading(this));
     }
 
-    return function createMario() {
+    return function createPlayer() {
         const mario = new Entity();
         mario.audio = audio;
         mario.size.set(14, 16);
@@ -121,8 +111,6 @@ function createMarioFactory(sprite, audio) {
             deactivateDataro();
         };
 
-        // When powered, absorb one hit by shrinking instead of dying
-        // Invincibility timer prevents immediate re-kill while still overlapping
         mario.invincibleTimer = 0;
         const killable = mario.traits.get(Killable);
         const originalKill = killable.kill.bind(killable);
@@ -139,9 +127,8 @@ function createMarioFactory(sprite, audio) {
         };
 
         mario.turbo = setTurboState;
-        mario.draw = drawMario;
+        mario.draw = drawPlayer;
 
-        // Tick down invincibility timer each frame
         const baseUpdate = mario.update.bind(mario);
         mario.update = function(gameContext, level) {
             if (mario.invincibleTimer > 0) {
@@ -154,4 +141,14 @@ function createMarioFactory(sprite, audio) {
 
         return mario;
     }
+}
+
+export function loadMario(audioContext) {
+    return Promise.all([
+        loadSpriteSheet('mario'),
+        loadAudioBoard('mario', audioContext),
+    ])
+    .then(([sprite, audio]) => {
+        return createPlayerFactory(sprite, audio);
+    });
 }

@@ -50,13 +50,16 @@ function buildDatroTile() {
     return buffer;
 }
 
-export function loadSpriteSheet(name) {
+export function loadSpriteSheet(name, imageTransform) {
     return loadJSON(`/sprites/${name}.json`)
     .then(sheetSpec => Promise.all([
         sheetSpec,
         loadImage(sheetSpec.imageURL),
     ]))
     .then(([sheetSpec, image]) => {
+        if (imageTransform) {
+            image = imageTransform(image);
+        }
         const sprites = new SpriteSheet(
             image,
             sheetSpec.tileW,

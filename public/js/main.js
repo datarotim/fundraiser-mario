@@ -9,7 +9,7 @@ import {createLevelLoader} from './loaders/level.js';
 import {loadFont} from './loaders/font.js';
 import {loadEntities} from './entities.js';
 import {makePlayer, bootstrapPlayer, resetPlayer, findPlayers} from './player.js';
-import {setupKeyboard} from './input.js';
+import {setupKeyboard, setupInput2P} from './input.js';
 import {createColorLayer} from './layers/color.js';
 import {createTextLayer} from './layers/text.js';
 import {createDashboardLayer} from './layers/dashboard.js';
@@ -23,7 +23,7 @@ import NarrativeScene from './NarrativeScene.js';
 import VictoryScene from './VictoryScene.js';
 import { connectEntity } from './traits/Pipe.js';
 import { OPENING_NARRATIVES, pickRandom, pickNextCard } from './narrative.js';
-import { startGamepad } from './Gamepad.js';
+import { startGamepad, stopGamepad } from './Gamepad.js';
 
 /* ============================================
    PLAYER DATA & LEAD CAPTURE
@@ -420,8 +420,8 @@ function startGameOverIdleTimer() {
 
 async function main(canvas) {
     const videoContext = canvas.getContext('2d');
+    const is2P = window.gameMode === '2p';
 
-    // Handle AudioContext with user gesture (required by browsers)
     const audioContext = new AudioContext();
     if (audioContext.state === 'suspended') {
         audioContext.resume();
@@ -437,17 +437,53 @@ async function main(canvas) {
     const sceneRunner = new SceneRunner();
 
     const mario = entityFactory.mario();
-    makePlayer(mario, "MARIO");
+    mario._isPlayer = true;
 
-    // Set display name from signup
-    const playerTrait = mario.traits.get(Player);
+    let luigi = null;
+    const allPlayers = [mario];
+
+    if (is2P) {
+        luigi = entityFactory.luigi();
+        luigi._isPlayer = true;
+        allPlayers.push(luigi);
+        makePlayer(mario, "ANNUAL", { hasTimer: true });
+        makePlayer(luigi, "GIFTS", { hasTimer: false });
+        stopGamepad();
+    } else {
+        makePlayer(mario, "MARIO");
+    }
+
+    const p1Trait = mario.traits.get(Player);
     const firstName = playerData.name.split(' ')[0] || 'PLAYER';
-    playerTrait.name = firstName.toUpperCase().slice(0, 10);
+    if (!is2P) {
+        p1Trait.name = firstName.toUpperCase().slice(0, 10);
+    }
 
     window.mario = mario;
 
-    const inputRouter = setupKeyboard(window);
-    inputRouter.addReceiver(mario);
+    let inputRouter;
+    if (is2P) {
+        inputRouter = setupInput2P(window);
+        inputRouter.assignSource('p1', mario);
+        inputRouter.assignSource('p2', luigi);
+    } else {
+        inputRouter = setupKeyboard(window);
+        inputRouter.addReceiver(mario);
+    }
+
+    function getTeamStats() {
+        if (!is2P) return mario.traits.get(Player);
+        const p1 = mario.traits.get(Player);
+        const p2 = luigi.traits.get(Player);
+        return {
+            name: 'TEAM',
+            score: p1.score + p2.score,
+            coins: p1.coins + p2.coins,
+            lives: Math.max(p1.lives, p2.lives),
+            lettersSent: p1.lettersSent + p2.lettersSent,
+            world: p1.world,
+        };
+    }
 
     function createLoadingScreen(name) {
         const scene = new Scene();
@@ -462,19 +498,26 @@ async function main(canvas) {
         sceneRunner.runNext();
 
         const level = await loadLevel(name);
-        bootstrapPlayer(mario, level);
 
-        // Match camera viewport to the currently-active canvas size so the
-        // 4:3 ↔ 16:9 admin toggle is respected on every level.
+        if (is2P) {
+            level.coopMode = true;
+        }
+
+        bootstrapPlayer(mario, level);
+        if (is2P) {
+            bootstrapPlayer(luigi, level);
+            luigi.pos.x = mario.pos.x + 16;
+            luigi.pos.y = mario.pos.y;
+        }
+
         level.camera.size.x = canvas.width;
         level.camera.size.y = canvas.height - 16;
 
         level.events.listen(Level.EVENT_TRIGGER, (spec, trigger, touches) => {
             if (spec.type === "goto") {
                 for (const _ of findPlayers(touches)) {
-                    // Show victory/stats screen between levels
-                    const playerTrait = mario.traits.get(Player);
-                    const victoryScene = new VictoryScene(font, playerTrait, {
+                    const stats = getTeamStats();
+                    const victoryScene = new VictoryScene(font, stats, {
                         isFinal: false,
                     });
                     sceneRunner.addSceneManual(victoryScene);
@@ -486,9 +529,8 @@ async function main(canvas) {
                 }
             } else if (spec.type === "final") {
                 for (const _ of findPlayers(touches)) {
-                    // Final level completed - show final victory then game over
-                    const playerTrait = mario.traits.get(Player);
-                    const victoryScene = new VictoryScene(font, playerTrait, {
+                    const stats = getTeamStats();
+                    const victoryScene = new VictoryScene(font, stats, {
                         isFinal: true,
                     });
                     sceneRunner.addSceneManual(victoryScene);
@@ -511,6 +553,10 @@ async function main(canvas) {
                         const level = await setupLevel(name);
                         const exitPipe = level.entities.get(pipe.props.backTo);
                         connectEntity(exitPipe, mario);
+                        if (is2P) {
+                            luigi.pos.copy(mario.pos);
+                            luigi.pos.x += 16;
+                        }
                         sceneRunner.addScene(level);
                         sceneRunner.runNext();
                     });
@@ -520,7 +566,9 @@ async function main(canvas) {
             }
         });
 
-        const dashboardLayer = createDashboardLayer(font, mario);
+        const dashboardLayer = is2P
+            ? createDashboardLayer(font, mario, luigi)
+            : createDashboardLayer(font, mario);
         level.comp.layers.push(dashboardLayer);
 
         const enemyLabelLayer = createEnemyLabelLayer(level.entities, font);
@@ -533,21 +581,19 @@ async function main(canvas) {
     }
 
     let currentWorldName = null;
-    let deathHandled = false;
     let worldsVisited = 0;
     let isDeathRestart = false;
 
     function showGameOver() {
-        const pt = mario.traits.get(Player);
-        const score = pt.score;
-        const donors = pt.coins;
-        const world = pt.world;
-        const lettersSent = pt.lettersSent;
+        const stats = getTeamStats();
+        const score = stats.score;
+        const donors = stats.coins;
+        const world = stats.world;
+        const lettersSent = stats.lettersSent;
         const responseRate = lettersSent > 0
             ? Math.round((donors / lettersSent) * 100)
             : 0;
 
-        // Animate score counter
         const scoreEl = document.getElementById('final-score');
         animateCounter(scoreEl, score);
 
@@ -560,30 +606,22 @@ async function main(canvas) {
 
         const name = playerData.name || 'Anonymous';
 
-        // Show screen with local data, but defer the rank number until the
-        // server response comes back — ranking against a stale / pre-PST
-        // cache is what used to produce a bogus "#1 for everyone".
         renderLeaderboard(name, score);
         const rankEl = document.getElementById('player-rank');
         if (rankEl) rankEl.textContent = '—';
 
         showScreen('gameover-screen');
 
-        // Hide touch controls
         const touchCtrl = document.getElementById('touch-controls');
         if (touchCtrl) touchCtrl.classList.add('hidden');
 
-        // Submit to server and only then set the authoritative rank
         addToLeaderboard(name, score, donors, world, lettersSent, responseRate).then(() => {
             renderLeaderboard(name, score);
             if (rankEl) rankEl.textContent = `#${getPlayerRank(score)}`;
         });
 
-        // Attract-mode idle timeout: if nobody touches anything for 15s
-        // after game-over, reload to splash so the next visitor starts fresh.
         startGameOverIdleTimer();
 
-        // Store lead with score locally as backup
         try {
             const leads = JSON.parse(localStorage.getItem('dataro_leads') || '[]');
             const existingIdx = leads.findIndex(l => l.name === playerData.name);
@@ -601,15 +639,43 @@ async function main(canvas) {
         const start = performance.now();
         const tick = (now) => {
             const progress = Math.min((now - start) / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+            const eased = 1 - Math.pow(1 - progress, 3);
             el.textContent = '$' + Math.floor(target * eased).toLocaleString();
             if (progress < 1) requestAnimationFrame(tick);
         };
         requestAnimationFrame(tick);
     }
 
+    function startDeathAnimation(player, isPit) {
+        player.traits.get(Solid).obstructs = false;
+        const physics = player.traits.get(Physics);
+        const origUpdate = physics.update.bind(physics);
+        physics.update = function(entity, gameContext, level) {
+            const {deltaTime} = gameContext;
+            entity.pos.y += entity.vel.y * deltaTime;
+            entity.vel.y += level.gravity * deltaTime;
+        };
+        if (isPit) {
+            player.vel.set(0, player.vel.y);
+        } else {
+            player.vel.set(0, 0);
+            setTimeout(() => player.vel.set(0, -400), 500);
+        }
+        return origUpdate;
+    }
+
+    function restorePlayer(player, origPhysicsUpdate) {
+        player.traits.get(Physics).update = origPhysicsUpdate;
+        player.traits.get(Solid).obstructs = true;
+    }
+
     function watchForDeath(level) {
-        deathHandled = false;
+        if (is2P) {
+            watchForDeath2P(level);
+            return;
+        }
+
+        let deathHandled = false;
         let pitDeathHandled = false;
 
         const originalUpdate = level.update.bind(level);
@@ -618,13 +684,11 @@ async function main(canvas) {
 
             const killable = mario.traits.get(Killable);
 
-            // Pit death: if Mario falls below the camera view, kill him
             if (!killable.dead && !pitDeathHandled) {
                 const bottomOfScreen = level.camera.pos.y + level.camera.size.y;
                 if (mario.pos.y > bottomOfScreen) {
                     pitDeathHandled = true;
                     killable.kill();
-                    // Force the queued kill immediately
                     mario.finalize();
                 }
             }
@@ -635,51 +699,22 @@ async function main(canvas) {
                 const playerTrait = mario.traits.get(Player);
                 playerTrait.lives -= 1;
 
-                // Freeze camera so screen doesn't scroll
                 level.freezeCamera = true;
-
-                // Stop music
                 level.music.pause();
 
-                // Disable solid collision so Mario falls through
-                mario.traits.get(Solid).obstructs = false;
+                const origPhysicsUpdate = startDeathAnimation(mario, pitDeathHandled);
 
-                // Override physics to only apply gravity to Mario (freeze X movement)
-                const physics = mario.traits.get(Physics);
-                const origPhysicsUpdate = physics.update.bind(physics);
-                physics.update = function(entity, gameContext, level) {
-                    const {deltaTime} = gameContext;
-                    entity.pos.y += entity.vel.y * deltaTime;
-                    entity.vel.y += level.gravity * deltaTime;
-                };
-
-                if (pitDeathHandled) {
-                    // Pit death: Mario is already falling, just let him continue
-                    // No bounce - he's already below screen
-                    mario.vel.set(0, mario.vel.y);
-                } else {
-                    // Enemy kill: pause briefly, then bounce up and fall
-                    mario.vel.set(0, 0);
-
-                    // Freeze all other entities
+                if (!pitDeathHandled) {
                     level.entities.forEach(entity => {
                         if (entity !== mario) {
                             entity.vel.set(0, 0);
-                            const entityUpdate = entity.update;
                             entity.update = function() {};
                         }
                     });
-
-                    // Brief pause then bounce up (like classic Mario)
-                    setTimeout(() => {
-                        mario.vel.set(0, -400);
-                    }, 500);
                 }
 
-                // Wait for death animation to complete then restart/game over
                 setTimeout(async () => {
-                    physics.update = origPhysicsUpdate;
-                    mario.traits.get(Solid).obstructs = true;
+                    restorePlayer(mario, origPhysicsUpdate);
                     level.freezeCamera = false;
 
                     if (playerTrait.lives > 0) {
@@ -695,11 +730,103 @@ async function main(canvas) {
         };
     }
 
+    function watchForDeath2P(level) {
+        const deathState = new Map();
+        for (const p of allPlayers) {
+            deathState.set(p, { handled: false, pitDeath: false, origPhysics: null });
+        }
+        let bothDeadResolved = false;
+
+        const originalUpdate = level.update.bind(level);
+        level.update = function(gameContext) {
+            originalUpdate(gameContext);
+
+            for (const player of allPlayers) {
+                const state = deathState.get(player);
+                const killable = player.traits.get(Killable);
+
+                if (!killable.dead && !state.pitDeath) {
+                    const bottom = level.camera.pos.y + level.camera.size.y;
+                    if (player.pos.y > bottom) {
+                        state.pitDeath = true;
+                        killable.kill();
+                        player.finalize();
+                    }
+                }
+
+                if (killable.dead && !state.handled) {
+                    state.handled = true;
+                    const pt = player.traits.get(Player);
+                    pt.lives -= 1;
+
+                    const partner = allPlayers.find(p => p !== player);
+                    const partnerDead = partner.traits.get(Killable).dead;
+
+                    state.origPhysics = startDeathAnimation(player, state.pitDeath);
+
+                    if (partnerDead) {
+                        level.freezeCamera = true;
+                        level.music.pause();
+                        if (!state.pitDeath) {
+                            level.entities.forEach(entity => {
+                                if (!allPlayers.includes(entity)) {
+                                    entity.vel.set(0, 0);
+                                    entity.update = function() {};
+                                }
+                            });
+                        }
+                    }
+
+                    const delay = state.pitDeath ? 2000 : 3000;
+                    setTimeout(async () => {
+                        restorePlayer(player, state.origPhysics);
+
+                        const partnerAlive = !partner.traits.get(Killable).dead;
+
+                        if (partnerAlive && pt.lives > 0) {
+                            killable.revive();
+                            player.pos.copy(partner.pos);
+                            player.pos.y -= 20;
+                            player.vel.set(0, 0);
+                            if (player.powered) {
+                                player.powered = false;
+                                player.size.set(14, 16);
+                            }
+                            state.handled = false;
+                            state.pitDeath = false;
+                            if (!level.entities.has(player)) {
+                                level.entities.add(player);
+                            }
+                        } else if (partnerAlive && pt.lives <= 0) {
+                            // This player is out of lives, partner continues solo
+                        } else if (!partnerAlive && !bothDeadResolved) {
+                            bothDeadResolved = true;
+                            const anyLives = allPlayers.some(p => p.traits.get(Player).lives > 0);
+                            if (anyLives) {
+                                level.freezeCamera = false;
+                                for (const p of allPlayers) {
+                                    if (p.traits.get(Killable).dead && p.traits.get(Player).lives > 0) {
+                                        p.traits.get(Killable).revive();
+                                        p.vel.set(0, 0);
+                                        restorePlayer(p, deathState.get(p).origPhysics || p.traits.get(Physics).update);
+                                    }
+                                }
+                                isDeathRestart = true;
+                                await startWorld(currentWorldName);
+                            } else {
+                                showGameOver();
+                            }
+                        }
+                    }, delay);
+                }
+            }
+        };
+    }
+
     async function startWorld(name) {
         currentWorldName = name;
         worldsVisited++;
 
-        // Show between-level fundraiser fact card (not on first world, not on death restart)
         if (worldsVisited > 1 && !isDeathRestart) {
             const cardText = pickNextCard();
             const cardLines = cardText.split('\n');
@@ -712,7 +839,6 @@ async function main(canvas) {
             sceneRunner.addSceneManual(cardScene);
             sceneRunner.runNext();
 
-            // Wait for card to complete before loading level
             await new Promise(resolve => {
                 cardScene.events.listen(Scene.EVENT_COMPLETE, resolve);
             });
@@ -722,9 +848,14 @@ async function main(canvas) {
 
         const level = await setupLevel(name);
         resetPlayer(mario, name);
+        if (is2P) {
+            resetPlayer(luigi, name);
+        }
 
         const playerProgressLayer = createPlayerProgressLayer(font, level);
-        const dashboardLayer = createDashboardLayer(font, mario);
+        const dashboardLayer = is2P
+            ? createDashboardLayer(font, mario, luigi)
+            : createDashboardLayer(font, mario);
 
         const waitScreen = new TimedScene();
         waitScreen.countDown = 2;
@@ -765,18 +896,14 @@ async function main(canvas) {
         return (scene instanceof Level) ? scene : null;
     }
 
-    // Reuse the splash <audio> element for pause-menu ambience so we don't
-    // need to ship a second copy of the overworld track.
     const pauseChime = new Audio('/audio/fx/pause.ogg');
     pauseChime.volume = 0.6;
 
     function startPauseAudio() {
-        // Classic Mario pause chime (one-shot)
         try {
             pauseChime.currentTime = 0;
             pauseChime.play().catch(() => {});
         } catch { /* ok */ }
-        // Quiet looped overworld music for attract-mode ambience
         if (splashMusic) {
             splashMusic.muted = false;
             splashMusic.volume = 0.35;
@@ -831,7 +958,6 @@ async function main(canvas) {
         stopPauseAudio();
         hideAllOverlays();
         const level = getCurrentLevel();
-        // HTML <audio> retains currentTime when paused, so playTheme resumes it
         if (level) level.music.playTheme();
         timer.resume();
     }
@@ -840,7 +966,6 @@ async function main(canvas) {
         window.location.reload();
     }
 
-    // Esc on keyboard, Start on gamepad (mapped to Escape in Gamepad.js)
     window.addEventListener('keydown', (e) => {
         if (e.code !== 'Escape') return;
 
@@ -852,10 +977,8 @@ async function main(canvas) {
             return;
         }
 
-        // Any other overlay (splash, signup, tutorial, gameover) — leave alone
         if (activeOverlay) return;
 
-        // No overlay = game is running → pause
         e.preventDefault();
         pauseGame();
     });
@@ -863,7 +986,6 @@ async function main(canvas) {
     document.getElementById('btn-resume').addEventListener('click', resumeGame);
     document.getElementById('btn-exit').addEventListener('click', exitToSplash);
 
-    // Show opening narrative crawl before first level
     const openingLines = pickRandom(OPENING_NARRATIVES);
     const narrativeScene = new NarrativeScene(font, openingLines, {
         title: 'THE FUNDRAISER',
@@ -960,6 +1082,24 @@ _splashGestureEvents.forEach(evt =>
 // Start listening for USB gamepads (dispatches synthetic keyboard events)
 startGamepad();
 
+// Update controller detection display
+function updateControllerDetect() {
+    const el = document.getElementById('controller-detect');
+    if (!el) return;
+    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+    const connected = [...gamepads].filter(g => g && g.connected);
+    if (connected.length === 0) {
+        el.textContent = 'No controllers detected';
+    } else if (connected.length === 1) {
+        el.textContent = '1 controller connected';
+    } else {
+        el.textContent = connected.length + ' controllers connected';
+    }
+}
+window.addEventListener('gamepadconnected', updateControllerDetect);
+window.addEventListener('gamepaddisconnected', updateControllerDetect);
+setInterval(updateControllerDetect, 2000);
+
 // Pre-fetch server leaderboard, then re-render splash top 5 with fresh data
 fetchLeaderboard().then(() => renderLeaderboard('', 0, 'splash-leaderboard-list', 5));
 
@@ -996,6 +1136,27 @@ document.getElementById('signup-form').addEventListener('submit', (e) => {
 
     showScreen('tutorial-screen');
 });
+
+// Mode toggle
+window.gameMode = '1p';
+const modeToggle1P = document.getElementById('mode-1p');
+const modeToggle2P = document.getElementById('mode-2p');
+if (modeToggle1P && modeToggle2P) {
+    modeToggle1P.addEventListener('click', () => {
+        window.gameMode = '1p';
+        modeToggle1P.classList.add('active');
+        modeToggle2P.classList.remove('active');
+        const p2Controls = document.getElementById('p2-controls-info');
+        if (p2Controls) p2Controls.style.display = 'none';
+    });
+    modeToggle2P.addEventListener('click', () => {
+        window.gameMode = '2p';
+        modeToggle2P.classList.add('active');
+        modeToggle1P.classList.remove('active');
+        const p2Controls = document.getElementById('p2-controls-info');
+        if (p2Controls) p2Controls.style.display = '';
+    });
+}
 
 // PHASE 3: Tutorial -> Game
 document.getElementById('btn-go').addEventListener('click', () => {
