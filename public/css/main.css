@@ -1379,3 +1379,218 @@ input:focus-visible {
     user-select: text;
     -webkit-user-select: text;
 }
+
+/* ============================================
+   FIESTA MODE — Konami Code Easter Egg
+   ============================================ */
+
+body.fiesta-mode {
+    --dataro-purple: #E11D74;
+    --dataro-purple-light: #E11D74;
+    --dataro-purple-dark: #B8155D;
+    --dataro-purple-glow: rgba(225, 29, 116, 0.4);
+    --dataro-gradient: linear-gradient(135deg, #E11D74 0%, #F59E0B 50%, #E11D74 100%);
+    --dataro-gradient-bright: linear-gradient(135deg, #F0307F 0%, #FBBF24 50%, #F0307F 100%);
+    --gold: #F59E0B;
+    --gold-dark: #D97706;
+    --darker: #FFF7E6;
+    --dark: #FFF0D4;
+    --surface: rgba(255, 247, 230, 0.95);
+    --white: #1A0E2E;
+    --off-white: #2D1B4E;
+    --gray-light: #6B3FA0;
+    --gray: #8A7A9E;
+    padding-top: 32px;
+}
+
+body.fiesta-mode::before {
+    content: "🪩 AFP ICON · TEQUILA HOUR · ¡FIESTA MODE! 🍹";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(90deg, #E11D74, #F59E0B, #E11D74);
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    z-index: 10000;
+    animation: fiesta-banner-pulse 3s ease-in-out infinite;
+}
+
+@keyframes fiesta-banner-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.85; background: linear-gradient(90deg, #F59E0B, #E11D74, #F59E0B); }
+}
+
+body.fiesta-mode .overlay-screen {
+    background: linear-gradient(135deg, #FFF7E6 0%, #FFE6F2 100%);
+}
+
+body.fiesta-mode #splash-screen {
+    background: linear-gradient(135deg, #FFF7E6 0%, #FFE6F2 50%, #FFF7E6 100%);
+}
+
+body.fiesta-mode #signup-screen,
+body.fiesta-mode #tutorial-screen,
+body.fiesta-mode #gameover-screen {
+    background: linear-gradient(135deg, #FFE6F2 0%, #FFF7E6 100%);
+}
+
+body.fiesta-mode .splash-glow {
+    background: radial-gradient(circle, rgba(225, 29, 116, 0.12) 0%, transparent 70%);
+}
+
+body.fiesta-mode .splash-title .title-line-2 {
+    background: linear-gradient(135deg, #E11D74 0%, #F59E0B 50%, #E11D74 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 4px 20px rgba(225, 29, 116, 0.3));
+}
+
+body.fiesta-mode .gameover-title {
+    background: linear-gradient(135deg, #E11D74 0%, #F59E0B 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+body.fiesta-mode .cta-button {
+    background: linear-gradient(135deg, #E11D74 0%, #F59E0B 100%);
+}
+
+body.fiesta-mode .cta-button:hover,
+body.fiesta-mode .cta-button:focus-visible {
+    background: linear-gradient(135deg, #F0307F 0%, #FBBF24 100%);
+    box-shadow: 0 8px 30px rgba(225, 29, 116, 0.4), 0 0 60px rgba(245, 158, 11, 0.2);
+}
+
+body.fiesta-mode .cta-button.secondary {
+    background: transparent;
+    border-color: #E11D74;
+    color: #E11D74;
+}
+
+body.fiesta-mode .cta-button.secondary:hover {
+    background: rgba(225, 29, 116, 0.1);
+}
+
+body.fiesta-mode .cta-button.ghost {
+    border-color: rgba(225, 29, 116, 0.3);
+    color: #6B3FA0;
+}
+
+body.fiesta-mode .cta-button.ghost:hover {
+    background: rgba(225, 29, 116, 0.08);
+    border-color: #E11D74;
+}
+
+body.fiesta-mode .dataro-badge {
+    box-shadow: 0 4px 20px rgba(225, 29, 116, 0.25);
+}
+
+body.fiesta-mode .conf-badge {
+    background: linear-gradient(135deg, rgba(225, 29, 116, 0.12) 0%, rgba(245, 158, 11, 0.08) 100%);
+    border-color: rgba(225, 29, 116, 0.3);
+    color: #E11D74;
+}
+
+body.fiesta-mode .pause-overlay {
+    background: rgba(255, 247, 230, 0.85);
+}
+
+body.fiesta-mode .pause-content {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(225, 29, 116, 0.3);
+    box-shadow: 0 12px 40px rgba(225, 29, 116, 0.15), 0 0 60px rgba(225, 29, 116, 0.1);
+}
+
+body.fiesta-mode .pause-stats {
+    border-color: rgba(225, 29, 116, 0.2);
+}
+
+body.fiesta-mode .controls-heading {
+    color: #E11D74;
+}
+
+body.fiesta-mode .key.arrow-key,
+body.fiesta-mode .key.space-key {
+    background: rgba(225, 29, 116, 0.1);
+    border-color: rgba(225, 29, 116, 0.3);
+}
+
+body.fiesta-mode .tutorial-goal {
+    background: rgba(225, 29, 116, 0.06);
+    border-color: rgba(225, 29, 116, 0.2);
+}
+
+body.fiesta-mode .goal-header {
+    color: #E11D74;
+}
+
+body.fiesta-mode .gameover-message {
+    background: rgba(225, 29, 116, 0.08);
+    border-color: rgba(225, 29, 116, 0.2);
+}
+
+body.fiesta-mode .message-text {
+    color: #E11D74;
+}
+
+body.fiesta-mode .lb-entry.highlight {
+    background: rgba(225, 29, 116, 0.1);
+    border-color: rgba(225, 29, 116, 0.25);
+}
+
+body.fiesta-mode .form-group input:not([type="checkbox"]):focus {
+    border-color: #E11D74;
+    background: rgba(225, 29, 116, 0.06);
+    box-shadow: 0 0 20px rgba(225, 29, 116, 0.25);
+}
+
+body.fiesta-mode .particle {
+    background: #E11D74;
+}
+
+body.fiesta-mode .coin {
+    color: #E11D74;
+}
+
+/* Fiesta confetti emoji animation */
+@media (prefers-reduced-motion: no-preference) {
+    @keyframes fiesta-drift {
+        0% {
+            opacity: 1;
+            transform: translateY(100vh) rotate(0deg);
+        }
+        50% {
+            opacity: 1;
+        }
+        100% {
+            opacity: 0;
+            transform: translateY(-20vh) rotate(360deg);
+        }
+    }
+
+    .fiesta-confetti {
+        position: fixed;
+        bottom: -2rem;
+        pointer-events: none;
+        z-index: 9999;
+        animation: fiesta-drift 8s ease-in-out infinite;
+        user-select: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fiesta-confetti {
+        display: none;
+    }
+}

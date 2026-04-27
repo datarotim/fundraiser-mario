@@ -314,5 +314,96 @@
             <button class="touch-btn touch-action touch-jump-btn" id="touch-btn-jump" aria-label="Jump">JUMP</button>
         </div>
     </div>
+
+    <script>
+    (function fiestaMode() {
+        var KONAMI = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","KeyB","KeyA"];
+        var EMOJIS = ["🍹","🎉","🪩","🌮","💃"];
+        var STORAGE_KEY = "dataro.fiestaMode";
+        var buffer = [];
+
+        function isActive() {
+            return document.body.classList.contains("fiesta-mode");
+        }
+
+        function setFiesta(on) {
+            document.body.classList.toggle("fiesta-mode", on);
+            localStorage.setItem(STORAGE_KEY, on ? "1" : "");
+            if (on) {
+                playCheer();
+                spawnConfetti();
+            } else {
+                removeConfetti();
+            }
+        }
+
+        function playCheer() {
+            try {
+                var ctx = new AudioContext();
+                var now = ctx.currentTime;
+
+                var osc1 = ctx.createOscillator();
+                var gain1 = ctx.createGain();
+                osc1.type = "sawtooth";
+                osc1.frequency.setValueAtTime(400, now);
+                osc1.frequency.linearRampToValueAtTime(900, now + 0.15);
+                osc1.frequency.linearRampToValueAtTime(1200, now + 0.3);
+                gain1.gain.setValueAtTime(0.15, now);
+                gain1.gain.linearRampToValueAtTime(0, now + 0.35);
+                osc1.connect(gain1).connect(ctx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.35);
+
+                var osc2 = ctx.createOscillator();
+                var gain2 = ctx.createGain();
+                osc2.type = "sine";
+                osc2.frequency.setValueAtTime(2000, now + 0.15);
+                osc2.frequency.linearRampToValueAtTime(4000, now + 0.35);
+                osc2.frequency.linearRampToValueAtTime(3000, now + 0.5);
+                gain2.gain.setValueAtTime(0, now);
+                gain2.gain.linearRampToValueAtTime(0.08, now + 0.2);
+                gain2.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc2.connect(gain2).connect(ctx.destination);
+                osc2.start(now + 0.15);
+                osc2.stop(now + 0.5);
+
+                setTimeout(function() { ctx.close(); }, 1000);
+            } catch (_) {}
+        }
+
+        function spawnConfetti() {
+            removeConfetti();
+            for (var i = 0; i < 12; i++) {
+                var span = document.createElement("span");
+                span.className = "fiesta-confetti";
+                span.textContent = EMOJIS[i % EMOJIS.length];
+                span.style.left = (Math.random() * 96 + 2) + "%";
+                span.style.animationDelay = (Math.random() * 4) + "s";
+                span.style.animationDuration = (5 + Math.random() * 5) + "s";
+                span.style.fontSize = (1.2 + Math.random() * 1.2) + "rem";
+                document.body.appendChild(span);
+            }
+        }
+
+        function removeConfetti() {
+            var els = document.querySelectorAll(".fiesta-confetti");
+            for (var i = 0; i < els.length; i++) els[i].remove();
+        }
+
+        if (localStorage.getItem(STORAGE_KEY) === "1") {
+            document.body.classList.add("fiesta-mode");
+            spawnConfetti();
+        }
+
+        window.addEventListener("keydown", function(e) {
+            buffer.push(e.code);
+            if (buffer.length > 10) buffer.shift();
+            if (buffer.length === 10 && buffer.every(function(k, i) { return k === KONAMI[i]; })) {
+                buffer = [];
+                setFiesta(!isActive());
+            }
+        });
+    })();
+    </script>
 </body>
 </html>
