@@ -83,6 +83,7 @@
             width: 6ch;
         }
         .lb-table tr:hover td { background: rgba(155, 111, 208, 0.05); }
+        .lb-table td.col-org.is-empty { color: var(--gray); }
 
         .lb-empty {
             padding: 40px;
@@ -158,11 +159,16 @@ function render(entries) {
         body.innerHTML = '<tr><td colspan="3" class="lb-empty">No scores yet. Be the first!</td></tr>';
         return;
     }
-    body.innerHTML = top.map((e, i) => `<tr>
-        <td class="col-rank">#${i + 1}</td>
-        <td class="col-first">${esc(e.name)}</td>
-        <td class="col-org">${esc(e.org)}</td>
-    </tr>`).join('');
+    body.innerHTML = top.map((e, i) => {
+        const name = e.name ? esc(e.name) : '<span style="color:var(--gray)">—</span>';
+        const orgClass = e.org ? 'col-org' : 'col-org is-empty';
+        const org = e.org ? esc(e.org) : '—';
+        return `<tr>
+            <td class="col-rank">#${i + 1}</td>
+            <td class="col-first">${name}</td>
+            <td class="${orgClass}">${org}</td>
+        </tr>`;
+    }).join('');
 }
 
 applyMode();

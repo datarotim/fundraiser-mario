@@ -163,11 +163,13 @@ function renderLeaderboard(currentPlayerName, currentScore, listId = 'leaderboar
         const isMe = entry.name === currentPlayerName && entry.score === currentScore;
         const div = document.createElement('div');
         div.className = `lb-entry${isMe ? ' highlight' : ''}`;
+        const name = entry.name || 'Anonymous';
+        const score = Number(entry.score) || 0;
         const org = entry.org ? ` <span class="lb-org">${escapeHtml(truncate(entry.org, 24))}</span>` : '';
         div.innerHTML = `
             <span class="lb-rank">#${i + 1}</span>
-            <span class="lb-name">${escapeHtml(truncate(entry.name, 20))}</span>${org}
-            <span class="lb-score">$${entry.score.toLocaleString()}</span>
+            <span class="lb-name">${escapeHtml(truncate(name, 20))}</span>${org}
+            <span class="lb-score">$${score.toLocaleString()}</span>
         `;
         list.appendChild(div);
     });
