@@ -1,4 +1,5 @@
 import Trait from '../Trait.js';
+import Killable from './Killable.js';
 
 const MARK = Symbol('level timer earmark');
 
@@ -12,13 +13,20 @@ export default class LevelTimer extends Trait {
         this.currentTime = this.totalTime;
         this.hurryTime = 28;
         this.hurryEmitted = null;
+        this.expired = false;
     }
 
     reset() {
         this.currentTime = this.totalTime;
+        this.expired = false;
     }
 
     update(entity, {deltaTime}, level) {
+        const killable = entity.traits.get(Killable);
+        if (killable && killable.dead) {
+            return;
+        }
+
         this.currentTime -= deltaTime * 2.5;
 
         if (!level[MARK]) {
@@ -32,6 +40,14 @@ export default class LevelTimer extends Trait {
         if (this.hurryEmitted !== false && this.currentTime > this.hurryTime) {
             level.events.emit(LevelTimer.EVENT_TIMER_OK);
             this.hurryEmitted = false;
+        }
+
+        if (!this.expired && this.currentTime <= 0) {
+            this.currentTime = 0;
+            this.expired = true;
+            if (killable) {
+                killable.kill();
+            }
         }
 
         level[MARK] = true;
