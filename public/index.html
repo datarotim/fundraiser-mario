@@ -245,6 +245,9 @@
                 <button class="cta-button ghost" id="btn-exit">
                     QUIT GAME
                 </button>
+                <button class="cta-button ghost fiesta-toggle" id="btn-fiesta">
+                    🪩 FIESTA MODE
+                </button>
             </div>
             <p class="pause-hint">ESC or START to resume</p>
         </div>
@@ -326,6 +329,14 @@
             return document.body.classList.contains("fiesta-mode");
         }
 
+        var fiestaBtn = document.getElementById("btn-fiesta");
+
+        function updateButton() {
+            if (fiestaBtn) fiestaBtn.textContent = isActive()
+                ? "🪩 FIESTA MODE ✓"
+                : "🪩 FIESTA MODE";
+        }
+
         function setFiesta(on) {
             document.body.classList.toggle("fiesta-mode", on);
             localStorage.setItem(STORAGE_KEY, on ? "1" : "");
@@ -335,6 +346,7 @@
             } else {
                 removeConfetti();
             }
+            updateButton();
         }
 
         function playCheer() {
@@ -403,6 +415,14 @@
                 setFiesta(!isActive());
             }
         });
+
+        if (fiestaBtn) {
+            fiestaBtn.addEventListener("click", function() {
+                setFiesta(!isActive());
+            });
+        }
+
+        updateButton();
     })();
     </script>
 </body>

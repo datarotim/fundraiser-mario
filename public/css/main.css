@@ -1563,6 +1563,25 @@ body.fiesta-mode .coin {
     color: #E11D74;
 }
 
+.fiesta-toggle {
+    font-size: 0.8rem !important;
+    padding: 8px 20px !important;
+    min-width: auto !important;
+    letter-spacing: 1px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.fiesta-toggle:hover {
+    opacity: 1;
+}
+
+body.fiesta-mode .fiesta-toggle {
+    opacity: 1;
+    border-color: #E11D74;
+    color: #E11D74;
+}
+
 /* Fiesta confetti emoji animation */
 @media (prefers-reduced-motion: no-preference) {
     @keyframes fiesta-drift {
