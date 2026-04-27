@@ -1,4 +1,5 @@
 import {loadMario} from './entities/Mario.js';
+import {loadLuigi} from './entities/Luigi.js';
 import {loadGoombaBrown, loadGoombaBlue} from './entities/Goomba.js';
 import {loadKoopaGreen, loadKoopaBlue} from './entities/Koopa.js';
 import {loadCheepSlow, loadCheepFast, loadCheepSlowWavy, loadCheepFastWavy} from './entities/CheepCheep.js';
@@ -47,6 +48,8 @@ export async function loadEntities(audioContext) {
     await Promise.all([
         setup(loadMario)
             .then(addAs('mario')),
+        setup(loadLuigi)
+            .then(addAs('luigi')),
         setup(loadPiranhaPlant)
             .then(addAs('piranha-plant')),
         setup(loadGoombaBrown)

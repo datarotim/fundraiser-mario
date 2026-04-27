@@ -9,6 +9,10 @@ export default class EntityCollider {
                 return;
             }
 
+            if (subject._isPlayer && candidate._isPlayer) {
+                return;
+            }
+
             if (subject.bounds.overlaps(candidate.bounds)) {
                 subject.collides(candidate);
             }

@@ -1,7 +1,6 @@
 import Player from './traits/Player.js';
 import LevelTimer from './traits/LevelTimer.js';
 
-// Map level files to fundraising quarter names
 const QUARTER_NAMES = {
     '1-1': 'Q1',
     '1-2': 'Q2',
@@ -18,20 +17,23 @@ export function getWorldDisplayName(worldName) {
     return QUARTER_NAMES[worldName] || worldName;
 }
 
-export function makePlayer(entity, name) {
+export function makePlayer(entity, name, options = {}) {
     const player = new Player();
-    player.name = "FUNDRAISER";
+    player.name = name || "FUNDRAISER";
     entity.addTrait(player);
 
-    const timer = new LevelTimer();
-    entity.addTrait(timer);
+    if (options.hasTimer !== false) {
+        const timer = new LevelTimer();
+        entity.addTrait(timer);
+    }
 }
 
 export function resetPlayer(entity, worldName) {
-    entity.traits.get(LevelTimer).reset();
+    if (entity.traits.has(LevelTimer)) {
+        entity.traits.get(LevelTimer).reset();
+    }
     entity.traits.get(Player).world = QUARTER_NAMES[worldName] || worldName;
 
-    // Reset power-up state
     if (entity.powered) {
         entity.powered = false;
         entity.size.set(14, 16);
@@ -39,7 +41,9 @@ export function resetPlayer(entity, worldName) {
 }
 
 export function bootstrapPlayer(entity, level) {
-    entity.traits.get(LevelTimer).hurryEmitted = null;
+    if (entity.traits.has(LevelTimer)) {
+        entity.traits.get(LevelTimer).hurryEmitted = null;
+    }
     entity.pos.copy(level.checkpoints[0]);
     level.entities.add(entity);
 }

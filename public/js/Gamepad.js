@@ -26,6 +26,12 @@ function dispatchKey(type, mapping) {
     }));
 }
 
+let _gamepadActive = true;
+
+export function stopGamepad() {
+    _gamepadActive = false;
+}
+
 export function startGamepad() {
     const prev = new Map();
 
@@ -37,6 +43,7 @@ export function startGamepad() {
     }
 
     function poll() {
+        if (!_gamepadActive) return;
         const gp = (navigator.getGamepads() || []).find(g => g && g.connected);
         if (gp) {
             for (const [idxStr, mapping] of Object.entries(BUTTON_MAP)) {

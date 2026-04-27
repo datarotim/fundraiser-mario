@@ -898,6 +898,67 @@ html, body {
     font-style: italic;
 }
 
+/* Mode toggle */
+.mode-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.mode-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 14px 28px;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--gray-light);
+    background: rgba(255, 255, 255, 0.04);
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    outline: none;
+    text-transform: uppercase;
+}
+
+.mode-btn:hover {
+    background: rgba(107, 63, 160, 0.1);
+    border-color: rgba(107, 63, 160, 0.3);
+}
+
+.mode-btn.active {
+    color: var(--white);
+    background: rgba(107, 63, 160, 0.2);
+    border-color: var(--dataro-purple-light);
+    box-shadow: 0 0 20px var(--dataro-purple-glow);
+}
+
+.mode-subtitle {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 400;
+    letter-spacing: 1px;
+    color: var(--gray);
+    margin-top: 2px;
+}
+
+.mode-btn.active .mode-subtitle {
+    color: var(--dataro-purple-light);
+}
+
+.controller-detect {
+    font-size: 0.78rem;
+    color: var(--gray);
+    margin-top: 10px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
 /* ============================================
    GAME OVER SCREEN
    ============================================ */
