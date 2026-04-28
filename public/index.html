@@ -69,9 +69,17 @@
                     <label for="player-name">First Name</label>
                     <input type="text" id="player-name" name="given-name" placeholder="Jane" autocomplete="given-name" maxlength="10" required />
                 </div>
+                <div class="form-group" id="group-lastname" style="display:none">
+                    <label for="player-lastname">Last Name</label>
+                    <input type="text" id="player-lastname" name="family-name" placeholder="Smith" autocomplete="family-name" maxlength="20" />
+                </div>
                 <div class="form-group" id="group-org">
                     <label for="player-org">Organization</label>
                     <input type="text" id="player-org" name="organization" placeholder="Your Nonprofit" autocomplete="organization" maxlength="40" />
+                </div>
+                <div class="form-group" id="group-email" style="display:none">
+                    <label for="player-email">Work Email</label>
+                    <input type="email" id="player-email" name="email" placeholder="jane@nonprofit.org" autocomplete="email" />
                 </div>
                 <button type="submit" class="cta-button big" id="btn-start-game">
                     START GAME
@@ -402,12 +410,19 @@
             for (var i = 0; i < els.length; i++) els[i].remove();
         }
 
-        if (localStorage.getItem(STORAGE_KEY) === "1") {
+        function fiestaAllowed() {
+            // Default to allowed when admin config hasn't loaded yet, but
+            // honor an explicit `fiestaEnabled: false` from the admin panel.
+            return !window.__ADMIN || window.__ADMIN.fiestaEnabled !== false;
+        }
+
+        if (fiestaAllowed() && localStorage.getItem(STORAGE_KEY) === "1") {
             document.body.classList.add("fiesta-mode");
             spawnConfetti();
         }
 
         window.addEventListener("keydown", function(e) {
+            if (!fiestaAllowed()) return;
             buffer.push(e.code);
             if (buffer.length > 10) buffer.shift();
             if (buffer.length === 10 && buffer.every(function(k, i) { return k === KONAMI[i]; })) {
@@ -418,6 +433,7 @@
 
         if (fiestaBtn) {
             fiestaBtn.addEventListener("click", function() {
+                if (!fiestaAllowed()) return;
                 setFiesta(!isActive());
             });
         }
