@@ -238,7 +238,8 @@ async function load() {
 }
 
 function render(entries) {
-    const top = [...entries].sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 25);
+    const limit = _scope === 'all' ? 50 : 25;
+    const top = [...entries].sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, limit);
     const body = document.getElementById('lb-body');
     if (!top.length) {
         const msg = _scope === 'today'
