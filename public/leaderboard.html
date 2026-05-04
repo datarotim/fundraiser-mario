@@ -19,6 +19,29 @@
             display: block;
         }
 
+        .lb-back-link {
+            position: fixed;
+            top: 24px;
+            right: 32px;
+            color: var(--dataro-purple-light);
+            font-size: 0.95rem;
+            text-decoration: none;
+            letter-spacing: 1px;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(155, 111, 208, 0.3);
+            background: rgba(155, 111, 208, 0.08);
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+        .lb-back-link:hover,
+        .lb-back-link:focus-visible {
+            background: rgba(155, 111, 208, 0.18);
+            border-color: rgba(155, 111, 208, 0.5);
+            color: var(--white);
+        }
+
         .lb-hero {
             text-align: center;
             margin-bottom: 28px;
@@ -51,8 +74,43 @@
         }
 
         .lb-table-wrap {
-            max-width: 1400px;
+            max-width: 1100px;
             margin: 0 auto;
+        }
+
+        /* Today / All Time toggle, top-right of the table */
+        .lb-table-controls {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 12px;
+        }
+        .lb-toggle {
+            display: inline-flex;
+            background: rgba(107, 63, 160, 0.12);
+            border: 1px solid rgba(155, 111, 208, 0.25);
+            border-radius: 999px;
+            padding: 4px;
+        }
+        .lb-toggle-btn {
+            background: transparent;
+            color: var(--gray-light);
+            border: none;
+            padding: 8px 18px;
+            font-family: 'Inter', system-ui, sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 999px;
+            transition: all 0.2s ease;
+        }
+        .lb-toggle-btn.active {
+            background: var(--dataro-purple-light);
+            color: var(--darker);
+        }
+        .lb-toggle-btn:not(.active):hover {
+            color: var(--white);
         }
 
         .lb-table {
@@ -82,10 +140,13 @@
             font-variant-numeric: tabular-nums;
             width: 6ch;
         }
-        .lb-table td.col-date {
-            color: var(--gray-light);
-            width: 14ch;
+        .lb-table td.col-score {
+            color: var(--gold);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            text-align: right;
         }
+        .lb-table th.col-score { text-align: right; }
         .lb-table tr:hover td { background: rgba(155, 111, 208, 0.05); }
         .lb-table td.is-empty { color: var(--gray); }
 
@@ -97,6 +158,8 @@
     </style>
 </head>
 <body class="leaderboard-page">
+    <a href="/" class="lb-back-link">← Back to Game</a>
+
     <div class="lb-hero">
         <div class="dataro-badge">
             <img src="/images/dataro-logo.png" alt="Dataro" class="dataro-logo-img" />
@@ -108,26 +171,29 @@
     <h2 class="lb-section-title">Leaderboard</h2>
 
     <div class="lb-table-wrap">
+        <div class="lb-table-controls">
+            <div class="lb-toggle" role="tablist" aria-label="Leaderboard scope">
+                <button class="lb-toggle-btn active" data-scope="today" role="tab" aria-selected="true">Today</button>
+                <button class="lb-toggle-btn" data-scope="all" role="tab" aria-selected="false">All Time</button>
+            </div>
+        </div>
+
         <table class="lb-table">
             <thead>
                 <tr>
                     <th class="col-rank">#</th>
                     <th class="col-first">First Name</th>
-                    <th class="col-last">Last Name</th>
                     <th class="col-org">Organization</th>
-                    <th class="col-date">Date</th>
+                    <th class="col-score">Score</th>
                 </tr>
             </thead>
             <tbody id="lb-body">
-                <tr><td colspan="5" class="lb-empty">Loading…</td></tr>
+                <tr><td colspan="4" class="lb-empty">Loading…</td></tr>
             </tbody>
         </table>
     </div>
 
 <script>
-const PST_SHORT = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric',
-});
 const esc = (s) => String(s ?? '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[c]);
 
 const UTM_BY_MODE = {
@@ -152,9 +218,13 @@ async function applyMode() {
     } catch { /* leave logo non-interactive on fetch failure */ }
 }
 
+let _scope = 'today';
+
 async function load() {
     try {
-        const r = await fetch('/api/scores?all=true');
+        // /api/scores returns today's PST entries; ?all=true returns every record.
+        const url = _scope === 'all' ? '/api/scores?all=true' : '/api/scores';
+        const r = await fetch(url);
         if (!r.ok) return;
         const { leaderboard } = await r.json();
         render(leaderboard || []);
@@ -165,23 +235,39 @@ function render(entries) {
     const top = [...entries].sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 25);
     const body = document.getElementById('lb-body');
     if (!top.length) {
-        body.innerHTML = '<tr><td colspan="5" class="lb-empty">No scores yet. Be the first!</td></tr>';
+        const msg = _scope === 'today'
+            ? 'No scores yet today. Be the first!'
+            : 'No scores yet. Be the first!';
+        body.innerHTML = `<tr><td colspan="4" class="lb-empty">${msg}</td></tr>`;
         return;
     }
     const cell = (val, baseClass) => val
         ? `<td class="${baseClass}">${esc(val)}</td>`
         : `<td class="${baseClass} is-empty">—</td>`;
     body.innerHTML = top.map((e, i) => {
-        const date = e.time ? PST_SHORT.format(new Date(e.time)) : '';
+        const score = Number(e.score) || 0;
         return `<tr>
             <td class="col-rank">#${i + 1}</td>
             ${cell(e.name, 'col-first')}
-            ${cell(e.lastName, 'col-last')}
             ${cell(e.org, 'col-org')}
-            ${cell(date, 'col-date')}
+            <td class="col-score">$${score.toLocaleString()}</td>
         </tr>`;
     }).join('');
 }
+
+document.querySelectorAll('.lb-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const scope = btn.dataset.scope;
+        if (scope === _scope) return;
+        _scope = scope;
+        document.querySelectorAll('.lb-toggle-btn').forEach(b => {
+            const isActive = b.dataset.scope === _scope;
+            b.classList.toggle('active', isActive);
+            b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+        load();
+    });
+});
 
 applyMode();
 load();

@@ -470,6 +470,23 @@ html, body {
     max-height: none;
 }
 
+.splash-leaderboard-link {
+    display: inline-block;
+    margin-top: 10px;
+    color: var(--dataro-purple-light);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.2s ease;
+}
+
+.splash-leaderboard-link:hover,
+.splash-leaderboard-link:focus-visible {
+    color: var(--white);
+}
+
 .feature-pill {
     padding: 10px 22px;
     background: rgba(107, 63, 160, 0.12);
