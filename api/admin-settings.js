@@ -4,24 +4,30 @@ const BLOB_KEY = 'admin-config.json';
 
 const DEFAULTS = {
     mode: 'event',
+    fields: { firstName: true, lastName: false, org: false, email: false },
     aspectRatio: '16-9',
+    twoPlayerEnabled: true,
+    fiestaEnabled: true,
 };
 
 async function readConfig() {
     try {
         const { blobs } = await list({ prefix: BLOB_KEY });
-        if (blobs.length === 0) return { ...DEFAULTS };
+        if (blobs.length === 0) return { ...DEFAULTS, fields: { ...DEFAULTS.fields } };
         const resp = await fetch(blobs[0].url, {
             headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
         });
         const data = await resp.json();
         return {
             mode: data.mode === 'digital' ? 'digital' : 'event',
+            fields: { ...DEFAULTS.fields, ...(data.fields || {}) },
             aspectRatio: data.aspectRatio === '4-3' ? '4-3' : '16-9',
+            twoPlayerEnabled: data.twoPlayerEnabled !== false,
+            fiestaEnabled: data.fiestaEnabled !== false,
         };
     } catch (err) {
         console.error('[Admin] Failed to read config:', err.message);
-        return { ...DEFAULTS };
+        return { ...DEFAULTS, fields: { ...DEFAULTS.fields } };
     }
 }
 
@@ -36,9 +42,18 @@ async function writeConfig(cfg) {
 
 function sanitize(body) {
     const incoming = body || {};
+    const fields = incoming.fields || {};
     return {
         mode: incoming.mode === 'digital' ? 'digital' : 'event',
+        fields: {
+            firstName: Boolean(fields.firstName),
+            lastName: Boolean(fields.lastName),
+            org: Boolean(fields.org),
+            email: Boolean(fields.email),
+        },
         aspectRatio: incoming.aspectRatio === '4-3' ? '4-3' : '16-9',
+        twoPlayerEnabled: incoming.twoPlayerEnabled !== false,
+        fiestaEnabled: incoming.fiestaEnabled !== false,
     };
 }
 

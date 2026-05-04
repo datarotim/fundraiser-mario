@@ -31,7 +31,9 @@ import { startGamepad, stopGamepad } from './Gamepad.js';
 
 const playerData = {
     name: '',
+    lastName: '',
     org: '',
+    email: '',
 };
 
 /* ============================================
@@ -103,7 +105,9 @@ async function addToLeaderboard(name, score, donors, world, lettersSent, respons
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 name,
+                lastName: playerData.lastName || '',
                 org: playerData.org || '',
+                email: playerData.email || '',
                 score,
                 donors,
                 world,
@@ -1023,7 +1027,10 @@ const canvas = document.getElementById('screen');
 
 const ADMIN_DEFAULTS = {
     mode: 'event',
+    fields: { firstName: true, lastName: false, org: false, email: false },
     aspectRatio: '16-9',
+    twoPlayerEnabled: true,
+    fiestaEnabled: true,
 };
 
 const UTM_BY_MODE = {
@@ -1036,9 +1043,14 @@ function readCachedAdminConfig() {
         const raw = JSON.parse(localStorage.getItem('dataro_admin_config') || '{}');
         return {
             mode: raw.mode === 'digital' ? 'digital' : 'event',
+            fields: { ...ADMIN_DEFAULTS.fields, ...(raw.fields || {}) },
             aspectRatio: raw.aspectRatio === '4-3' ? '4-3' : '16-9',
+            twoPlayerEnabled: raw.twoPlayerEnabled !== false,
+            fiestaEnabled: raw.fiestaEnabled !== false,
         };
-    } catch { return { ...ADMIN_DEFAULTS }; }
+    } catch {
+        return { ...ADMIN_DEFAULTS, fields: { ...ADMIN_DEFAULTS.fields } };
+    }
 }
 
 let __ADMIN = readCachedAdminConfig();
@@ -1051,6 +1063,48 @@ function applyAdminConfig(cfg) {
     } else {
         canvas.width = 432;
         canvas.className = 'aspect-16-9';
+    }
+
+    // Sign-up form field visibility
+    const showField = (id, on) => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = on ? '' : 'none';
+    };
+    const fields = cfg.fields || ADMIN_DEFAULTS.fields;
+    showField('group-firstname', fields.firstName);
+    showField('group-lastname',  fields.lastName);
+    showField('group-org',       fields.org);
+    showField('group-email',     fields.email);
+    const nameEl  = document.getElementById('player-name');
+    const emailEl = document.getElementById('player-email');
+    if (nameEl)  nameEl.required  = !!fields.firstName;
+    if (emailEl) emailEl.required = !!fields.email;
+
+    // Two Player Mode gate: hide tutorial mode-toggle when disabled, and
+    // force the active mode back to 1P so any prior selection is cleared.
+    const modeToggleEl = document.querySelector('.mode-toggle');
+    if (modeToggleEl) {
+        modeToggleEl.style.display = cfg.twoPlayerEnabled === false ? 'none' : '';
+    }
+    if (cfg.twoPlayerEnabled === false) {
+        const m1 = document.getElementById('mode-1p');
+        const m2 = document.getElementById('mode-2p');
+        if (m1) m1.classList.add('active');
+        if (m2) m2.classList.remove('active');
+        const p2Controls = document.getElementById('p2-controls-info');
+        if (p2Controls) p2Controls.style.display = 'none';
+        window.__teamModeActive = false;
+    }
+
+    // Fiesta Mode gate: hide pause-menu Fiesta button, and clear any active
+    // fiesta state. Konami listener checks window.__ADMIN.fiestaEnabled at
+    // keypress time so it'll early-return when disabled.
+    window.__ADMIN = cfg;
+    const fiestaBtn = document.getElementById('btn-fiesta');
+    if (fiestaBtn) fiestaBtn.style.display = cfg.fiestaEnabled === false ? 'none' : '';
+    if (cfg.fiestaEnabled === false) {
+        document.body.classList.remove('fiesta-mode');
+        try { localStorage.setItem('dataro.fiestaMode', 'off'); } catch {}
     }
 
     // Mode-driven behaviour
@@ -1115,31 +1169,54 @@ setInterval(updateControllerDetect, 2000);
 // Pre-fetch server leaderboard, then re-render splash top 5 with fresh data
 fetchLeaderboard().then(() => renderLeaderboard('', 0, 'splash-leaderboard-list', 5));
 
-// PHASE 1: Splash -> Signup
+// PHASE 1: Splash -> Signup (skip when no fields are enabled)
 document.getElementById('btn-play').addEventListener('click', () => {
-    showScreen('signup-screen');
+    const fields = (__ADMIN && __ADMIN.fields) || ADMIN_DEFAULTS.fields;
+    const anyField = Object.values(fields).some(Boolean);
+    if (anyField) {
+        showScreen('signup-screen');
+    } else {
+        const teamMode = window.gameMode === '2p';
+        playerData.name = teamMode ? 'PLAYER 1' : 'PLAYER';
+        playerData.lastName = '';
+        playerData.org = '';
+        playerData.email = '';
+        showScreen('tutorial-screen');
+    }
 });
 
 // PHASE 2: Signup -> Tutorial
 document.getElementById('signup-form').addEventListener('submit', (e) => {
     e.preventDefault();
 
+    const fields = (__ADMIN && __ADMIN.fields) || ADMIN_DEFAULTS.fields;
     const first = document.getElementById('player-name').value.trim();
+    const last  = document.getElementById('player-lastname').value.trim();
     const org   = document.getElementById('player-org').value.trim();
+    const email = document.getElementById('player-email').value.trim();
 
-    if (!first) {
+    // Respect admin toggles: any enabled field gets required-style validation
+    if (fields.firstName && !first) {
         document.getElementById('player-name').focus();
         return;
     }
+    if (fields.email && !email) {
+        document.getElementById('player-email').focus();
+        return;
+    }
 
-    playerData.name = first;
+    playerData.name = first || 'PLAYER';
+    playerData.lastName = last;
     playerData.org = org;
+    playerData.email = email;
 
     try {
         const leads = JSON.parse(localStorage.getItem('dataro_leads') || '[]');
         leads.push({
             name: playerData.name,
+            lastName: playerData.lastName,
             org: playerData.org,
+            email: playerData.email,
             timestamp: new Date().toISOString(),
             plays: 1,
         });
