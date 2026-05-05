@@ -515,6 +515,33 @@ html, body {
     margin-top: 44px;
 }
 
+.splash-disclaimer {
+    max-width: 720px;
+    margin: 28px auto 0;
+    padding: 0 16px;
+    font-size: 0.7rem;
+    line-height: 1.5;
+    color: var(--gray);
+    text-align: center;
+}
+
+.splash-disclaimer strong {
+    color: var(--gray-light);
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.splash-disclaimer a {
+    color: var(--dataro-purple-light);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.splash-disclaimer a:hover,
+.splash-disclaimer a:focus-visible {
+    color: var(--white);
+}
+
 .conf-badge {
     display: inline-block;
     padding: 12px 28px;
